@@ -116,13 +116,15 @@ button:hover {
 /* ---------- PRINT & PAGE ---------- */
 .page {
   width:210mm;
-  min-height:297mm;
+  height:260mm;             /* fixed height, not min-height */
   background:#fff;
   color:#000;
-  margin:0 auto 12px auto;
-  padding:10mm 0 0 0;
+  margin:0 auto 8px auto;
+  padding:5mm 0 5mm 0;      /* less padding top/bottom */
   page-break-after:always;
   position:relative;
+  transform:scale(0.9);     /* ↓ shrink content slightly */
+  transform-origin: top center;
 }
 
 .week-grid th {
@@ -160,7 +162,15 @@ button:hover {
   display:inline-block;
   text-align:left;
   padding:1.5mm 2mm;
+
+  /* === Ensure background colors and gradients print === */
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+  color-adjust: exact !important;
+  background-clip: border-box !important;
+  mix-blend-mode: normal !important;
 }
+
 
 .frac {
   position:absolute;
@@ -241,11 +251,47 @@ button:hover {
 }
 
 @media print {
-  body {background:#fff;padding:0;}
-  .card,.no-print {display:none!important;}
-  * {-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important;}
-  @page {size:A4 portrait;margin:8mm;}
+  /* Hide everything except the planner pages */
+  body {
+    background: #fff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  .card, .no-print, #printControls {
+    display: none !important;
+  }
+
+  /* Show only planner pages */
+  .page {
+    display: block !important;
+    width: 210mm !important;
+    height: 297mm !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    transform: none !important;
+    page-break-after: always !important;
+  }
+
+  /* Force A4 portrait layout with no extra margins */
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  /* Ensure colors and highlights print correctly */
+  .hl {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    background-clip: border-box !important;
+    mix-blend-mode: normal !important;
+  }
 }
+
 </style>
 
 <body>
@@ -505,22 +551,36 @@ function plainTimetableTable(){
   let html='<table class="summary-table" style="table-layout:fixed;"><thead><tr><th>Period\\Day</th>'+
            ['Day 1','Day 2','Day 3','Day 4','Day 5','Day 6','Day 7'].map(d=>`<th>${d}</th>`).join('')+
            '</tr></thead><tbody>';
+
+  // Period rows
   for(let r=0;r<6;r++){
     html+=`<tr><th>${periods[r]}</th>`;
     for(let c=0;c<7;c++){
       const s=(gridSub[r][c]||'').trim();
       const base=baseSubject(s);
       const color=base&&subjects[base]?subjects[base]:'#fff';
-      html+=`<td style="padding:6px;"><div style="display:inline-block;padding:4px 6px;border-radius:4px;background:${color};">${s}</div></td>`;
+      html+=`<td style="padding:6px;">
+        <div style="display:inline-block;padding:4px 6px;border-radius:4px;background:${color};">${s}</div>
+      </td>`;
     }
     html+='</tr>';
+
+    // insert duty rows after P2 and P4
+    if (r===1 || r===3) {
+      const dutyArray = (r===1 ? dutyTextP2 : dutyTextP4);
+      html+=`<tr><td style="background:#f2f3f6;font-weight:700;">Duty</td>`;
+      for (let c=0;c<7;c++){
+        const txt = dutyArray[c] ? dutyArray[c] : '';
+        html+=`<td style="background:#f2f3f6;font-style:italic;">${txt}</td>`;
+      }
+      html+=`</tr>`;
+    }
   }
-  // Duty preview rows (labels only)
-  html+=`<tr><td style="background:#f2f3f6;font-weight:700;">Duty</td>${Array(7).fill('<td style="background:#f2f3f6;"></td>').join('')}</tr>`;
-  html+=`<tr><td style="background:#f2f3f6;font-weight:700;">Duty</td>${Array(7).fill('<td style="background:#f2f3f6;"></td>').join('')}</tr>`;
+
   html+='</tbody></table>';
   return html;
 }
+
 
 function generateSummaryTable() {
   let html = '<h2>Class Contact Summary</h2><table class="summary-table"><tr><th>Subject</th>';
