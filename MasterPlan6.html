@@ -663,20 +663,23 @@ function generateEventList() {
 }
 /* ===== SUMMARY ===== */
 function generateSummaryTable() {
-  let html = '<h2>Class Disruption Summary</h2>';
+  let html = '<h2>Class Contact Summary</h2>';
   html += '<table class="summary-table"><tr><th>Subject</th>';
   for (let t = 1; t <= 4; t++) html += `<th>Term ${t}</th>`;
   html += '<th>Total</th></tr>';
 
   const allSubs = Object.keys(subjects);
   allSubs.forEach(sub => {
-    let yearTotal = 0, yearPossible = 0;
+    let yearTotal = 0, yearPossible = 0, yearHours = 0;
     html += `<tr><td>${sub}</td>`;
+
     for (let ti = 0; ti < 4; ti++) {
       const T = termConfig[ti];
       if (!termInclude[ti]) { html += '<td>-</td>'; continue; }
       const start = new Date(T.start);
       let total = 0, affected = 0;
+
+      // 🔹 count periods
       for (let w = 0; w < T.weeks; w++) {
         for (let day = 0; day < 5; day++) {
           const current = addDays(start, w * 7 + day);
@@ -688,20 +691,29 @@ function generateSummaryTable() {
             if (gridSub[p][rot - 1] === sub) {
               total++;
               let evHit = allEvents().some(ev => ev.include && !ev.skip && sameDate(current, ev.date) && ev.periods[p]);
-              if (!evHit && dayOfWeek === 5 && p === 0) evHit = true;
+              if (!evHit && dayOfWeek === 5 && p === 0) evHit = true; // skip PD Friday P1
               if (evHit) affected++;
             }
           }
         }
       }
-      yearTotal += total - affected; yearPossible += total;
-      html += `<td>${(total - affected)}/${total}</td>`;
+
+      const unaffected = total - affected;
+      const hours = (unaffected * 50) / 60; // convert 50 min lessons → hours
+      yearTotal += unaffected;
+      yearPossible += total;
+      yearHours += hours;
+
+      html += `<td>${unaffected}/${total} <span style="color:#555;">(${hours.toFixed(0)}Hr)</span></td>`;
     }
-    html += `<td>${yearTotal}/${yearPossible}</td></tr>`;
+
+    const totalHours = (yearHours).toFixed(0);
+    html += `<td>${yearTotal}/${yearPossible} <span style="color:#555;">(${totalHours}Hr)</span></td></tr>`;
   });
+
   html += '</table>';
 
-  // 🔹 Term Dates Table (with 4 Oct-style dates)
+  // 🔹 Term Dates Table
   html += `
     <h3 style="margin-top:25px;text-align:left;">Term Dates & Length</h3>
     <table class="summary-table" style="font-size:15px;">
@@ -723,10 +735,10 @@ function generateSummaryTable() {
     </table>
   `;
 
-  // 🔹 Append formatted events list
   html += generateEventList();
   return html;
 }
+
 /* ===== WEEKLY PAGE RENDER ===== */
 function buildPage(monday, termStart, startDay, termNumber, weekNumber, isFirst) {
   const page = document.createElement('div');
