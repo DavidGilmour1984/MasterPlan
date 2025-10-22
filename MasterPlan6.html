@@ -758,20 +758,25 @@ function buildPage(monday, termStart, startDay, termNumber, weekNumber, isFirst)
   cols.forEach(([label, date]) => {
     const th = document.createElement('th');
     if (date) {
-      const dayNum = computeRotationDay(date, termStart, startDay);
-      const skipped = isSkipped(date);
-      const options = { day: 'numeric', month: 'short' }; // e.g. "4 Oct"
-      const dateStr = date.toLocaleDateString('en-NZ', options);
+  const skipped = isSkipped(date);
+  const options = { day: 'numeric', month: 'short' }; // e.g. "4 Oct"
+  const dateStr = date.toLocaleDateString('en-NZ', options);
 
-      th.textContent = `${label} – ${dateStr} – Day ${dayNum}`;
-      if (skipped) {
-        th.style.background = '#e5e7eb';
-        th.style.color = '#777';
-        th.style.fontStyle = 'italic';
-      }
-    } else {
-      th.textContent = label; // weekend column
-    }
+  if (skipped) {
+    // 🔹 Skip events (holidays, leave weekends) — no rotation day
+    th.textContent = `${label} – ${dateStr}`;
+    th.style.background = '#e5e7eb';
+    th.style.color = '#777';
+    th.style.fontStyle = 'italic';
+  } else {
+    // 🔸 Normal school day — show rotation day
+    const dayNum = computeRotationDay(date, termStart, startDay);
+    th.textContent = `${label} – ${dateStr} – Day ${dayNum}`;
+  }
+} else {
+  th.textContent = label; // weekend column
+}
+
     hr.appendChild(th);
   });
   thead.appendChild(hr);
@@ -823,17 +828,30 @@ function rowCells(cols, periodIndex, termStart, startDay) {
       const rot = computeRotationDay(date, termStart, startDay);
       const dayOfWeek = strip(date).getDay(); // 1=Mon ... 5=Fri
 
-      // --- Hard rule: no Friday Period 1 ever (PD) ---
+      // --- Friday Period 1 rule ---
       if (dayOfWeek === 5 && periodIndex === 0) {
+        const eventsToday = allEvents()
+          .filter(ev => ev.include && sameDate(date, ev.date))
+          .map(ev => ev.name);
+
         const pdDiv = document.createElement('div');
         pdDiv.className = 'event-label';
-        pdDiv.textContent = 'Professional Development';
+
+        if (eventsToday.length > 0) {
+          // 🔹 Show the event name (e.g. Leave Weekend / Holiday)
+          pdDiv.textContent = eventsToday.join(' / ');
+        } else {
+          // 🔸 No event = normal Friday PD
+          pdDiv.textContent = 'Professional Development';
+        }
+
         div.appendChild(pdDiv);
         td.appendChild(div);
         tr.appendChild(td);
         return;
       }
 
+      // --- Regular skipped days or affected periods ---
       if (skipped) {
         const eventsToday = allEvents()
           .filter(ev => ev.include && sameDate(date, ev.date))
@@ -861,13 +879,13 @@ function rowCells(cols, periodIndex, termStart, startDay) {
             if (s in subjects) span.style.background = subjects[s];
             div.appendChild(span);
 
-            // 🔹 Add fraction bottom-right (light grey)
+            // 🔹 Fraction top-right
             const total = countUnaffectedPeriods(s, termStart);
             const count = countCurrentOccurrence(s, termStart, date, periodIndex);
             const frac = document.createElement('div');
             frac.textContent = `${count}/${total}`;
             frac.style.position = 'absolute';
-            frac.style.bottom = '2px';
+            frac.style.top = '2px';
             frac.style.right = '4px';
             frac.style.fontSize = '11px';
             frac.style.color = '#999';
@@ -883,6 +901,7 @@ function rowCells(cols, periodIndex, termStart, startDay) {
   });
   return tr;
 }
+
 
 /* ===== Helpers for fraction ===== */
 function countUnaffectedPeriods(subjectName, termStart) {
