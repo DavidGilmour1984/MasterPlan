@@ -5,61 +5,268 @@
 <title>DCG Planner 2026 – St Peter’s</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
-:root{
+:root {
   --bg:#f5f7fb; --card:#fff; --ink:#111; --muted:#6b7280;
   --accent:#2563eb; --accentDark:#1e40af;
   --grid:#e5e7eb; --line:#d1d5db; --head:#f8fafc;
 }
+
 *{box-sizing:border-box}
-body{margin:0;padding:20px;background:var(--bg);color:var(--ink);font-family:Helvetica,Arial,sans-serif;}
-.wrap{margin:0 auto}
-.card{background:var(--card);border-radius:14px;padding:18px;box-shadow:0 10px 30px rgba(0,0,0,.08);margin:0 auto 16px auto;width:90vw}
-h2{margin:0 0 8px 0;font-size:22px}
-button,input{font-family:inherit}
-input[type=number]{width:100%;padding:10px 12px;font-size:18px;border:1px solid var(--grid);border-radius:12px;background:#fff}
-button{background:var(--accent);color:#fff;border:none;cursor:pointer;padding:10px 14px;border-radius:12px;font-size:18px}
-button:hover{background:var(--accentDark)}
-.page{width:210mm;min-height:297mm;background:#fff;color:#000;margin:0 auto 12px auto;padding:10mm 0 0 0;page-break-after:always;position:relative}
-.week-grid th{border:1px solid #000;padding:4mm;text-align:center;width:20%}
-.week-grid td{border:1px solid #000;padding:0;vertical-align:top;text-align:left;width:20%;position:relative}
-.slot{position:relative;min-height:40mm;overflow:hidden}
-.hl{position:absolute;top:0;left:0;font-weight:700;font-size:17px;line-height:1.1;border-radius:3px;max-width:100%;word-wrap:break-word;display:inline-block;text-align:left;padding:1.5mm 2mm}
-.frac{position:absolute;top:2px;right:4px;font-size:11px;color:#666;font-weight:400}
-.divider{height:6mm;background:#f2f3f6;border:none}
-.cover{position:absolute;top:0;left:0;right:0;bottom:0;width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
-.cover h1{font-size:72px;margin:0;font-weight:700}
-.cover h2{font-size:32px;margin:10px 0 20px 0;font-weight:500}
-.cover img{width:120mm;max-width:90%;height:auto;margin-top:10mm}
-.event-label{display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:#eceff3;color:#555;font-style:italic;text-align:center;border-radius:2px;padding:3mm}
-.summary-table{border-collapse:collapse;width:100%;margin-top:20px;table-layout:fixed}
-.summary-table th,.summary-table td{border:1px solid #000;padding:6px;text-align:center;font-size:14px;word-wrap:break-word}
-.summary-table th{background:#f2f2f2}
-@media print{
-  body{background:#fff;padding:0}
-  .card,.no-print{display:none!important}
-  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
-  @page{size:A4 portrait;margin:8mm}
+
+body {
+  margin:0;
+  padding:20px;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:Helvetica,Arial,sans-serif;
+}
+
+.wrap {
+  max-width:900px;
+  margin:0 auto;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:20px;
+}
+
+/* ---------- CARD STYLE ---------- */
+.card {
+  background:var(--card);
+  border-radius:16px;
+  padding:24px 28px;
+  box-shadow:0 8px 25px rgba(0,0,0,.08);
+  width:100%;
+}
+
+h2 {
+  margin:0 0 12px 0;
+  font-size:26px;
+  text-align:center;
+}
+
+h3 {
+  margin-top:20px;
+  font-size:20px;
+  font-weight:600;
+  border-bottom:2px solid var(--grid);
+  padding-bottom:4px;
+}
+
+button, input {
+  font-family:inherit;
+}
+
+/* ---------- INPUTS ---------- */
+input[type=number] {
+  width:80px;
+  padding:8px 10px;
+  font-size:18px;
+  border:1px solid var(--grid);
+  border-radius:10px;
+  background:#fff;
+  text-align:center;
+}
+
+/* ---------- BUTTONS ---------- */
+button {
+  background:var(--accent);
+  color:#fff;
+  border:none;
+  cursor:pointer;
+  padding:10px 16px;
+  border-radius:12px;
+  font-size:18px;
+  transition:background .2s;
+}
+
+button:hover {
+  background:var(--accentDark);
+}
+
+/* ---------- TABLE ---------- */
+.extra-table {
+  width:100%;
+  border-collapse:collapse;
+  margin-top:10px;
+  table-layout:fixed;
+}
+
+.extra-table th, .extra-table td {
+  border:1px solid var(--line);
+  padding:10px;
+  text-align:center;
+  font-size:16px;
+}
+
+.extra-table th {
+  background:var(--head);
+  font-weight:600;
+}
+
+/* ---------- BUTTON BAR ---------- */
+.button-bar {
+  display:flex;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap:12px;
+  margin-top:20px;
+}
+
+/* ---------- PRINT & PAGE ---------- */
+.page {
+  width:210mm;
+  min-height:297mm;
+  background:#fff;
+  color:#000;
+  margin:0 auto 12px auto;
+  padding:10mm 0 0 0;
+  page-break-after:always;
+  position:relative;
+}
+
+.week-grid th {
+  border:1px solid #000;
+  padding:4mm;
+  text-align:center;
+  width:20%;
+}
+
+.week-grid td {
+  border:1px solid #000;
+  padding:0;
+  vertical-align:top;
+  text-align:left;
+  width:20%;
+  position:relative;
+}
+
+.slot {
+  position:relative;
+  min-height:40mm;
+  overflow:hidden;
+}
+
+.hl {
+  position:absolute;
+  top:0;
+  left:0;
+  font-weight:700;
+  font-size:17px;
+  line-height:1.1;
+  border-radius:3px;
+  max-width:100%;
+  word-wrap:break-word;
+  display:inline-block;
+  text-align:left;
+  padding:1.5mm 2mm;
+}
+
+.frac {
+  position:absolute;
+  top:2px;
+  right:4px;
+  font-size:11px;
+  color:#666;
+  font-weight:400;
+}
+
+.divider {
+  height:6mm;
+  background:#f2f3f6;
+  border:none;
+}
+
+.cover {
+  position:absolute;
+  top:0;left:0;right:0;bottom:0;
+  width:100%;height:100%;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+}
+
+.cover h1 {
+  font-size:72px;
+  margin:0;
+  font-weight:700;
+}
+
+.cover h2 {
+  font-size:32px;
+  margin:10px 0 20px 0;
+  font-weight:500;
+}
+
+.cover img {
+  width:120mm;
+  max-width:90%;
+  height:auto;
+  margin-top:10mm;
+}
+
+.event-label {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  height:100%;
+  background:#eceff3;
+  color:#555;
+  font-style:italic;
+  text-align:center;
+  border-radius:2px;
+  padding:3mm;
+}
+
+.summary-table {
+  border-collapse:collapse;
+  width:100%;
+  margin-top:20px;
+  table-layout:fixed;
+}
+
+.summary-table th, .summary-table td {
+  border:1px solid #000;
+  padding:6px;
+  text-align:center;
+  font-size:14px;
+  word-wrap:break-word;
+}
+
+.summary-table th {
+  background:#f2f2f2;
+}
+
+@media print {
+  body {background:#fff;padding:0;}
+  .card,.no-print {display:none!important;}
+  * {-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important;}
+  @page {size:A4 portrait;margin:8mm;}
 }
 </style>
-</head>
+
 <body>
 <div class="wrap">
-
   <div class="card">
-    <h2>Print & File</h2>
-    <div id="printControls" style="display:flex;gap:10px;flex-wrap:wrap;margin:8px 0;"></div>
+    <h2>St Peter’s Planner Generator</h2>
+    <div id="printControls" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:10px 0;"></div>
 
-    <h3 style="margin-top:16px;">Extra Pages</h3>
-    <table style="width:100%;border-collapse:collapse;table-layout:fixed;margin-top:8px;">
-      <thead><tr><th style="text-align:left;">Page Type</th><th style="text-align:center;">Number of Pages</th></tr></thead>
+    <h3>Extra Pages</h3>
+    <table class="extra-table">
+      <thead>
+        <tr><th>Page Type</th><th>Number of Pages</th></tr>
+      </thead>
       <tbody>
-        <tr><td>Lined Pages (10 mm ruled)</td><td><input id="linedPages" type="number" min="0" max="50" value="2" style="width:80px;text-align:center;"></td></tr>
-        <tr><td>Grid Pages (10 mm squares)</td><td><input id="gridPages" type="number" min="0" max="50" value="2" style="width:80px;text-align:center;"></td></tr>
-        <tr><td>Blank Note Pages</td><td><input id="blankPages" type="number" min="0" max="50" value="2" style="width:80px;text-align:center;"></td></tr>
+        <tr><td>Lined Pages (10 mm ruled)</td><td><input id="linedPages" type="number" min="0" max="50" value="2"></td></tr>
+        <tr><td>Grid Pages (10 mm squares)</td><td><input id="gridPages" type="number" min="0" max="50" value="2"></td></tr>
+        <tr><td>Blank Note Pages</td><td><input id="blankPages" type="number" min="0" max="50" value="2"></td></tr>
       </tbody>
     </table>
 
-    <div style="margin-top:15px;display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap;">
+    <div class="button-bar">
       <button id="loadBtn">📂 Load Planner</button>
       <button id="saveBtn">💾 Save Planner</button>
       <button id="printBtn">🖨️ Print / PDF</button>
@@ -590,7 +797,7 @@ function loadPlannerPrettyCSV(text) {
         if (!row[0]) continue;
         const name = row[0];
         const date = ddmmyyyyToISO(row[1]);
-        const periods = (row[2] || '').split('|')
+        const periods = (row[2] || '').split('.')
           .map(x => parseInt(x))
           .filter(n => n >= 1 && n <= 6);
 
