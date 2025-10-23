@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>STP Planner 2026 – St Peter’s</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+:root {
+  --bg:#f5f7fb; --card:#fff; --ink:#111; --muted:#6b7280;
+  --accent:#2563eb; --accentDark:#1e40af;
+  --grid:#e5e7eb; --line:#d1d5db; --head:#f8fafc;
+}
+
+*{box-sizing:border-box}
+
+body {
+  margin:0;
+  padding:20px;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:Helvetica,Arial,sans-serif;
+}
+
+.wrap {
+  max-width:900px;
+  margin:0 auto;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:20px;
+}
+
+/* ---------- CARD STYLE ---------- */
+.card {
+  background:var(--card);
+  border-radius:16px;
+  padding:24px 28px;
+  box-shadow:0 8px 25px rgba(0,0,0,.08);
+  width:100%;
+}
+
+h2 {
+  margin:0 0 12px 0;
+  font-size:26px;
+  text-align:center;
+}
+
+h3 {
+  margin-top:20px;
+  font-size:20px;
+  font-weight:600;
+  border-bottom:2px solid var(--grid);
+  padding-bottom:4px;
+}
+
+button, input {
+  font-family:inherit;
+}
+
+/* ---------- INPUTS ---------- */
+input[type=number] {
+  width:80px;
+  padding:8px 10px;
+  font-size:18px;
+  border:1px solid var(--grid);
+  border-radius:10px;
+  background:#fff;
+  text-align:center;
+}
+
+/* ---------- BUTTONS ---------- */
+button {
+  background:var(--accent);
+  color:#fff;
+  border:none;
+  cursor:pointer;
+  padding:10px 16px;
+  border-radius:12px;
+  font-size:18px;
+  transition:background .2s;
+}
+
+button:hover {
+  background:var(--accentDark);
+}
+
+/* ---------- TABLE ---------- */
+.extra-table {
+  width:100%;
+  border-collapse:collapse;
+  margin-top:10px;
+  table-layout:fixed;
+}
+
+.extra-table th, .extra-table td {
+  border:1px solid var(--line);
+  padding:10px;
+  text-align:center;
+  font-size:16px;
+}
+
+.extra-table th {
+  background:var(--head);
+  font-weight:600;
+}
+
+/* ---------- BUTTON BAR ---------- */
+.button-bar {
+  display:flex;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap:12px;
+  margin-top:20px;
+}
+
+/* ---------- PRINT & PAGE ---------- */
+.page {
+  width:210mm;
+  height:260mm;             /* fixed height, not min-height */
+  background:#fff;
+  color:#000;
+  margin:0 auto 8px auto;
+  padding:5mm 0 5mm 0;      /* less padding top/bottom */
+  page-break-after:always;
+  position:relative;
+  transform:scale(0.9);     /* ↓ shrink content slightly */
+  transform-origin: top center;
+}
+
+.week-grid th {
+  border:1px solid #000;
+  padding:4mm;
+  text-align:center;
+  width:20%;
+}
+
+.week-grid td {
+  border:1px solid #000;
+  padding:0;
+  vertical-align:top;
+  text-align:left;
+  width:20%;
+  position:relative;
+}
+
+.slot {
+  position:relative;
+  min-height:40mm;
+  overflow:hidden;
+}
+
+.hl {
+  position:absolute;
+  top:0;
+  left:0;
+  font-weight:700;
+  font-size:17px;
+  line-height:1.1;
+  border-radius:3px;
+  max-width:100%;
+  word-wrap:break-word;
+  display:inline-block;
+  text-align:left;
+  padding:1.5mm 2mm;
+
+  /* === Ensure background colors and gradients print === */
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+  color-adjust: exact !important;
+  background-clip: border-box !important;
+  mix-blend-mode: normal !important;
+}
+
+
+.frac {
+  position:absolute;
+  top:2px;
+  right:4px;
+  font-size:11px;
+  color:#666;
+  font-weight:400;
+}
+
+.divider {
+  height:6mm;
+  background:#f2f3f6;
+  border:none;
+}
+
+.cover {
+  position:absolute;
+  top:0;left:0;right:0;bottom:0;
+  width:100%;height:100%;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+}
+
+.cover h1 {
+  font-size:72px;
+  margin:0;
+  font-weight:700;
+}
+
+.cover h2 {
+  font-size:32px;
+  margin:10px 0 20px 0;
+  font-weight:500;
+}
+
+.cover img {
+  width:120mm;
+  max-width:90%;
+  height:auto;
+  margin-top:10mm;
+}
+
+.event-label {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  height:100%;
+  background:#eceff3;
+  color:#555;
+  font-style:italic;
+  text-align:center;
+  border-radius:2px;
+  padding:3mm;
+}
+
+.summary-table {
+  border-collapse:collapse;
+  width:100%;
+  margin-top:20px;
+  table-layout:fixed;
+}
+
+.summary-table th, .summary-table td {
+  border:1px solid #000;
+  padding:6px;
+  text-align:center;
+  font-size:14px;
+  word-wrap:break-word;
+}
+
+.summary-table th {
+  background:#f2f2f2;
+}
+
+@media print {
+  /* Hide everything except the planner pages */
+  body {
+    background: #fff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  .card, .no-print, #printControls {
+    display: none !important;
+  }
+
+  /* Show only planner pages */
+  .page {
+    display: block !important;
+    width: 210mm !important;
+    height: 297mm !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    transform: none !important;
+    page-break-after: always !important;
+  }
+
+  /* Force A4 portrait layout with no extra margins */
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  /* Ensure colors and highlights print correctly */
+  .hl {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    background-clip: border-box !important;
+    mix-blend-mode: normal !important;
+  }
+}
+
+</style>
+
+<body>
+<!-- ===== SIMPLE INSTRUCTIONS + MAIN INTERFACE ===== -->
+<div class="wrap">
+<!-- ===== INSTRUCTIONS CARD ===== -->
+<div class="card" style="margin-bottom:10px;">
+  <h2>📘 How to Use the Planner Generator</h2>
+  <ol style="font-size:17px;line-height:1.5;color:#111;margin-top:10px;">
+    <li><b>Set up your planner first:</b>
+      <ul style="margin-top:4px;margin-bottom:6px;">
+        <li>Choose which <b>terms</b> to include using the checkboxes at the top.</li>
+        <li>Decide how many <b>Lined</b>, <b>Grid</b>, or <b>Blank</b> note pages you’d like added at the end.</li>
+      </ul>
+    </li>
+    <li><b>Then click “📂 Load Planner”</b> and select your CSV file.<br>
+        – This file contains your timetable, duties, and key events.</li>
+    <li>Once loaded, the system automatically builds your planner with:
+      <ul style="margin-top:4px;margin-bottom:6px;">
+        <li>A cover page</li>
+        <li>Your timetable and duty overview</li>
+        <li>Weekly planner pages for each term, showing lesson fractions remaining</li>
+        <li>A class summary and key events list</li>
+      </ul>
+    </li>
+    <li><b>Click “🖨️ Print / PDF”</b> when ready.<br>
+        – Choose <b>“Save as PDF”</b> for a digital copy, or print directly on A4 paper.</li>
+  </ol>
+
+  <p style="font-size:15px;color:#777;margin-top:6px;">
+    ⚙️ <b>Note:</b> A short delay (about 10 seconds) after loading is completely normal — the planner processes a large amount of data to generate every week and summary page.<br>
+    🕓 <b>Tip:</b> For smoother performance, <b>set your terms and extra pages before loading</b> your CSV file.  
+    This reduces recalculation and shortens loading time.
+  </p>
+</div>
+
+  <!-- ===== PLANNER CONTROLS ===== -->
+  <div class="card">
+    <h2>St Peter’s Planner Generator</h2>
+    <div id="printControls"
+         style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:10px 0;"></div>
+
+    <h3>Extra Pages</h3>
+    <table class="extra-table">
+      <thead>
+        <tr><th>Page Type</th><th>Number of Pages</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Lined Pages (10 mm ruled)</td>
+          <td><input id="linedPages" type="number" min="0" max="50" value="2"></td>
+        </tr>
+        <tr>
+          <td>Grid Pages (10 mm squares)</td>
+          <td><input id="gridPages" type="number" min="0" max="50" value="2"></td>
+        </tr>
+        <tr>
+          <td>Blank Note Pages</td>
+          <td><input id="blankPages" type="number" min="0" max="50" value="2"></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="button-bar">
+      <button id="loadBtn">📂 Load Planner</button>
+      <button id="printBtn">🖨️ Print / PDF</button>
+      <input type="file" id="loadFile" accept=".csv" style="display:none;">
+    </div>
+  </div>
+
+  <!-- ===== GENERATED PAGES OUTPUT ===== -->
+  <div id="pages"></div>
+
+</div>
+<script>
+/* ===== BASE DATA ===== */
+const PALETTE = [
+  '#FFB3BA','#FFDFBA','#FFFFBA','#BAFFC9','#BAE1FF','#E0BBFF',
+  'repeating-linear-gradient(135deg,#FFB3BA 0%,#FFB3BA 20%,#BAE1FF 20%,#BAE1FF 40%)',
+  'repeating-linear-gradient(135deg,#BAFFC9 0%,#BAFFC9 20%,#E0BBFF 20%,#E0BBFF 40%)',
+  'repeating-linear-gradient(135deg,#FFFFBA 0%,#FFFFBA 20%,#A8D0FF 20%,#A8D0FF 40%)'
+];
+
+const DEFAULT_TERMS = [
+ {term:1,start:'2026-02-02',weeks:9,startDay:1},
+ {term:2,start:'2026-04-20',weeks:10,startDay:5},
+ {term:3,start:'2026-07-20',weeks:10,startDay:2},
+ {term:4,start:'2026-10-12',weeks:9,startDay:6},
+];
+let termConfig = JSON.parse(JSON.stringify(DEFAULT_TERMS));
+let termInclude = [true,true,true,true];
+
+/* ===== GLOBAL ARRAYS ===== */
+let gridSub = Array.from({length:6},()=>Array(7).fill(''));
+let dutyTextP2 = Array(7).fill('');
+let dutyTextP4 = Array(7).fill('');
+let events = [];
+let subjects = {};
+const fractionCache = {}; // caching container
+
+/* ===== FIXED EVENTS ===== */
+const FIXED_EVENTS=[
+ {include:true,skip:true,name:'',date:'2026-02-02',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'Waitangi Day',date:'2026-02-06',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'Athletics Day',date:'2026-02-25',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'Leave Weekend',date:'2026-03-09',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'Parent Conferences',date:'2026-04-02',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'Good Friday',date:'2026-04-03',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'Teacher Only Day',date:'2026-04-20',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'ANZAC Day',date:'2026-04-27',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'Leave Weekend',date:'2026-05-29',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:"King's Birthday",date:'2026-06-01',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'Teacher Only Day',date:'2026-07-20',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'Parent Conferences',date:'2026-08-21',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'Leave Weekend',date:'2026-08-24',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'Leave Weekend',date:'2026-08-25',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'Labour Day',date:'2026-10-26',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'Ends of Year',date:'2026-12-10',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'End of Year',date:'2026-12-11',periods:[1,1,1,1,1,1]},
+];
+
+/* ===== UTILITIES ===== */
+function allEvents(){return[...FIXED_EVENTS,...events];}
+function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x;}
+function strip(d){const z=new Date(d);return new Date(z.getFullYear(),z.getMonth(),z.getDate());}
+function sameDate(a,b){return strip(a).getTime()===strip(b).getTime();}
+function isSkipped(date){return allEvents().some(ev=>ev.include&&ev.skip&&sameDate(date,ev.date));}
+function ddmmyyyyToISO(dmy){
+  if(!dmy) return dmy;
+  if(/^\d{4}-\d{2}-\d{2}$/.test(dmy)) return dmy;
+  const m=dmy.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if(!m) return dmy;
+  const dd=String(m[1]).padStart(2,'0');
+  const mm=String(m[2]).padStart(2,'0');
+  return `${m[3]}-${mm}-${dd}`;
+}
+function deltaTeachingDaysSkipAware(s,e){
+  s=strip(s);e=strip(e);
+  if(e<s) return -deltaTeachingDaysSkipAware(e,s);
+  let c=0,x=new Date(s);
+  while(x<=e){const w=x.getDay();if(w>=1&&w<=5&&!isSkipped(x))c++;x.setDate(x.getDate()+1);}
+  return c-1;
+}
+function computeRotationDay(dateObj,termStart,startDay){
+  const k=deltaTeachingDaysSkipAware(termStart,dateObj);
+  const idx=((startDay-1)+k)%7;return((idx+7)%7)+1;
+}
+function baseSubject(name){
+  if(!name) return '';
+  const i=name.indexOf('-');
+  return i>0 ? name.slice(0,i).trim() : name.trim();
+}
+function rebuildSubjectsFromGrid(){
+  subjects={};
+  const set=new Set();
+  for(let r=0;r<6;r++)for(let c=0;c<7;c++){
+    const s=(gridSub[r][c]||'').trim();
+    if(s) set.add(baseSubject(s));
+  }
+  Array.from(set).sort().forEach((name,idx)=>subjects[name]=PALETTE[idx%PALETTE.length]);
+}
+function eventsAffecting(dateObj,periodIndex){
+  return allEvents()
+    .filter(ev=>ev.include&&!ev.skip&&sameDate(dateObj,ev.date)&&ev.periods[periodIndex])
+    .map(ev=>ev.name);
+}
+
+/* ===== FRACTION CACHE (fixed key matching) ===== */
+function cacheKey(base, termStart) {
+  return `${base}|${new Date(termStart).toISOString().slice(0,10)}`;
+}
+function buildFractionCache(){
+  fractionCache.unaffected={};
+  fractionCache.timeline={};
+  const allBases=Object.keys(subjects);
+
+  for(const base of allBases){
+    for(const T of termConfig){
+      const key = cacheKey(base, T.start);
+      let count=0;
+      const timeline=[];
+      for(let w=0;w<T.weeks;w++){
+        for(let d=0;d<5;d++){
+          const date=addDays(new Date(T.start),w*7+d);
+          if(isSkipped(date))continue;
+          const rot=computeRotationDay(date,new Date(T.start),T.startDay);
+          for(let p=0;p<6;p++){
+            const s=gridSub[p][rot-1];
+            if(baseSubject(s)===base){
+              const dow=date.getDay();
+              if(dow===5&&p===0)continue;
+              const evHits=eventsAffecting(date,p);
+              if(evHits.length===0){
+                count++;
+                timeline.push({date:strip(date),count});
+              }
+            }
+          }
+        }
+      }
+      fractionCache.unaffected[key]=count;
+      fractionCache.timeline[key]=timeline;
+    }
+  }
+}
+function countUnaffectedForBase(base, termStart) {
+  const key = cacheKey(base, termStart);
+  return fractionCache.unaffected[key] || 0;
+}
+function countSoFarForBase(base, termStart, date) {
+  const key = cacheKey(base, termStart);
+  const list = fractionCache.timeline[key];
+  if (!list) return 0;
+  const target = strip(date).getTime();
+  for (let i = list.length - 1; i >= 0; i--) {
+    if (list[i].date.getTime() <= target) return list[i].count;
+  }
+  return 0;
+}
+
+/* ===== RENDER & LOADER ===== */
+function resetPlannerState(){
+  document.getElementById('pages').innerHTML='';
+  document.getElementById('printControls').innerHTML='';
+  subjects={};
+  gridSub=Array.from({length:6},()=>Array(7).fill(''));
+  dutyTextP2=Array(7).fill('');
+  dutyTextP4=Array(7).fill('');
+  events=[];
+  for(const k in fractionCache)delete fractionCache[k];
+}
+function renderPrintControls(){
+  const host=document.getElementById('printControls');host.innerHTML='';
+  termConfig.forEach((t,i)=>{
+    const lbl=document.createElement('label');
+    lbl.style.cssText='border:1px solid var(--grid);padding:6px 10px;border-radius:10px;background:#fff;margin:2px;cursor:pointer;';
+    lbl.innerHTML=`<input type="checkbox" ${termInclude[i]?'checked':''} style="transform:scale(1.2);margin-right:8px;">Include Term ${t.term}`;
+    const cb=lbl.querySelector('input');
+    cb.onchange=e=>termInclude[i]=e.target.checked;
+    host.appendChild(lbl);
+  });
+}
+function plainTimetableTable(){
+  let html='<table class="summary-table"><thead><tr><th>Period\\Day</th>'+
+  ['Day 1','Day 2','Day 3','Day 4','Day 5','Day 6','Day 7'].map(d=>`<th>${d}</th>`).join('')+'</tr></thead><tbody>';
+  for(let r=0;r<6;r++){
+    html+=`<tr><th>P${r+1}</th>`;
+    for(let c=0;c<7;c++){
+      const s=(gridSub[r][c]||'').trim();
+      const base=baseSubject(s);
+      const color=base&&subjects[base]?subjects[base]:'#fff';
+      html+=`<td style="padding:6px;"><div style="padding:4px 6px;border-radius:4px;background:${color};">${s}</div></td>`;
+    }
+    html+='</tr>';
+    if(r===1||r===3){
+      const dutyArray=(r===1?dutyTextP2:dutyTextP4);
+      html+=`<tr><td style="background:#f2f3f6;">Duty</td>`;
+      for(let c=0;c<7;c++)html+=`<td style="background:#f2f3f6;">${dutyArray[c]||''}</td>`;
+      html+='</tr>';
+    }
+  }
+  html+='</tbody></table>';return html;
+}
+function loadPlannerPrettyCSV(text){
+  resetPlannerState();
+  const delim=text.includes('\t')?'\t':',';
+  const lines=text.trim().split(/\r?\n/);
+  for(let i=1;i<lines.length;i++){
+    const parts=lines[i].split(delim).map(s=>s.trim());
+    const label=parts[0];
+    if(/^P[1-6]$/.test(label)){
+      const r=parseInt(label.slice(1))-1;
+      for(let c=0;c<7;c++)gridSub[r][c]=parts[c+1]||'';
+    }else if(label==='Duty'){
+      const vals=parts.slice(1,8).map(s=>s.trim());
+      if(dutyTextP2.every(x=>!x))dutyTextP2=vals;else dutyTextP4=vals;
+    }else if(/^events$/i.test(label)){
+      for(let r=i+2;r<Math.min(i+52,lines.length);r++){
+        const row=lines[r].split(delim).map(s=>s.trim());
+        if(!row[0])continue;
+        const name=row[0];
+        const date=ddmmyyyyToISO(row[1]);
+        const periods=(row[2]||'').split('.').map(x=>parseInt(x)).filter(n=>n>=1&&n<=6);
+        if(name&&date&&periods.length>0){
+          const periodsArr=[0,0,0,0,0,0];
+          periods.forEach(p=>periodsArr[p-1]=1);
+          events.push({name,date,periods:periodsArr,include:true,skip:false});
+        }
+      }break;
+    }
+  }
+  rebuildSubjectsFromGrid();
+  buildFractionCache();   // build once
+  renderPrintControls();
+  renderPages();
+  alert(`✅ Planner loaded (${events.length} events found).`);
+}
+
+/* ===== SUMMARY TABLE ===== */
+function generateSummaryTable(){
+  let html='<h2>Class Contact Summary</h2><table class="summary-table"><tr><th>Subject</th>';
+  for(let t=1;t<=4;t++)html+=`<th>Term ${t}</th>`;
+  html+='<th>Total</th></tr>';
+  const bases=Object.keys(subjects);
+  bases.forEach(base=>{
+    let yearTotal=0,yearPossible=0,yearHours=0;
+    html+=`<tr><td>${base}</td>`;
+    for(let ti=0;ti<4;ti++){
+      const T=termConfig[ti];
+      if(!termInclude[ti]){html+='<td>-</td>';continue;}
+      const start=new Date(T.start);
+      let total=0,affected=0;
+      for(let w=0;w<T.weeks;w++){
+        for(let day=0;day<5;day++){
+          const current=addDays(start,w*7+day);
+          const dow=strip(current).getDay();
+          const fullDay=allEvents().some(ev=>ev.include&&ev.skip&&sameDate(current,ev.date));
+          if(fullDay)continue;
+          const rot=computeRotationDay(current,start,T.startDay);
+          for(let p=0;p<6;p++){
+            const s=gridSub[p][rot-1];
+            if(baseSubject(s)===base){
+              total++;
+              let evHit=allEvents().some(ev=>ev.include&&!ev.skip&&sameDate(current,ev.date)&&ev.periods[p]);
+              if(!evHit&&dow===5&&p===0)evHit=true;
+              if(evHit)affected++;
+            }
+          }
+        }
+      }
+      const unaffected=total-affected;
+      const hours=(unaffected*50)/60;
+      yearTotal+=unaffected;yearPossible+=total;yearHours+=hours;
+      html+=`<td>${unaffected}/${total} <span style="color:#555;">(${hours.toFixed(0)}Hr)</span></td>`;
+    }
+    html+=`<td>${yearTotal}/${yearPossible} <span style="color:#555;">(${yearHours.toFixed(0)}Hr)</span></td></tr>`;
+  });
+  html+='</table>';
+
+  html+='<h3>Term Dates</h3><ul>';
+  termConfig.forEach(T=>{
+    const s=new Date(T.start);
+    const e=addDays(s,T.weeks*7-1);
+    const fmt=d=>d.toLocaleDateString('en-NZ',{day:'numeric',month:'long'});
+    html+=`<li>Term ${T.term}: ${fmt(s)} – ${fmt(e)} (${T.weeks} weeks)</li>`;
+  });
+  html+='</ul><h3>Key Dates & Events</h3><ul>';
+  allEvents().filter(ev=>ev.include).sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(ev=>{
+    const d=new Date(ev.date);
+    const ds=d.toLocaleDateString('en-NZ',{day:'numeric',month:'short'});
+    html+=`<li>${ds} – ${ev.name}</li>`;
+  });
+  html+='</ul>';return html;
+}
+
+/* ===== WEEKLY PAGES ===== */
+function buildPage(monday,termStart,startDay,termNumber,weekNumber,isFirst){
+  const page=document.createElement('div');
+  page.className='page '+(isFirst?'right-bind':'left-bind');
+  const tbl=document.createElement('table');tbl.className='week-grid';
+  const thead=document.createElement('thead');const hr=document.createElement('tr');
+  const cols=isFirst?[['Mon',monday],['Tue',addDays(monday,1)],['Wed',addDays(monday,2)]]
+  :[['Thu',addDays(monday,3)],['Fri',addDays(monday,4)],[`Weekend (T${termNumber}-W${weekNumber})`,null]];
+  cols.forEach(([label,date])=>{
+    const th=document.createElement('th');
+    if(date){
+      const skipped=isSkipped(date);
+      const dateStr=date.toLocaleDateString('en-NZ',{day:'numeric',month:'short'});
+      if(skipped){th.textContent=`${label} – ${dateStr}`;th.style.background='#e5e7eb';th.style.color='#777';}
+      else{const dayNum=computeRotationDay(date,termStart,startDay);th.textContent=`${label} – ${dateStr} – Day ${dayNum}`;}
+    }else th.textContent=label;
+    hr.appendChild(th);
+  });
+  thead.appendChild(hr);tbl.appendChild(thead);
+  const tbody=document.createElement('tbody');
+  for(let r=0;r<2;r++)tbody.appendChild(rowCells(cols,r,termStart,startDay));
+  tbody.appendChild(dutyDividerRow(cols,termStart,startDay,'p2'));
+  for(let r=2;r<4;r++)tbody.appendChild(rowCells(cols,r,termStart,startDay));
+  tbody.appendChild(dutyDividerRow(cols,termStart,startDay,'p4'));
+  for(let r=4;r<6;r++)tbody.appendChild(rowCells(cols,r,termStart,startDay));
+  const notes=document.createElement('tr');
+  cols.forEach(()=>{const td=document.createElement('td');td.style.height='25mm';td.style.background='#f9fafb';td.innerHTML='<div style="padding:3mm;font-style:italic;color:#555;">Notes...</div>';notes.appendChild(td);});
+  tbody.appendChild(notes);
+  tbl.appendChild(tbody);page.appendChild(tbl);return page;
+}
+function rowCells(cols,periodIndex,termStart,startDay){
+  const tr=document.createElement('tr');
+  cols.forEach(([label,date])=>{
+    const td=document.createElement('td');
+    const div=document.createElement('div');div.className='slot';
+    if(date){
+      const skipped=isSkipped(date);
+      const rot=computeRotationDay(date,termStart,startDay);
+      const dow=strip(date).getDay();
+      if(dow===5&&periodIndex===0){
+        const eventsToday=allEvents().filter(ev=>ev.include&&sameDate(date,ev.date)).map(ev=>ev.name);
+        const pd=document.createElement('div');pd.className='event-label';pd.textContent=eventsToday.length?eventsToday.join(' / '):'Professional Development';
+        div.appendChild(pd);td.appendChild(div);tr.appendChild(td);return;
+      }
+      if(skipped){
+        const names=allEvents().filter(ev=>ev.include&&sameDate(date,ev.date)).map(ev=>ev.name);
+        if(names.length){const evDiv=document.createElement('div');evDiv.className='event-label';evDiv.textContent=names.join(' / ');div.appendChild(evDiv);}
+      }else{
+        const hits=eventsAffecting(date,periodIndex);
+        if(hits.length){
+          const evDiv=document.createElement('div');evDiv.className='event-label';evDiv.textContent=hits.join(' / ');
+          div.appendChild(evDiv);
+        }else{
+          const s=gridSub[periodIndex]?.[rot-1]||'';
+          if(s){
+            const base=baseSubject(s);
+            const span=document.createElement('span');span.className='hl';span.textContent=s;
+            if(base in subjects)span.style.background=subjects[base];
+            div.appendChild(span);
+            const total=countUnaffectedForBase(base,termStart);
+            const count=countSoFarForBase(base,termStart,date);
+            const frac=document.createElement('div');frac.className='frac';frac.textContent=`${count}/${total}`;
+            div.appendChild(frac);
+          }
+        }
+      }
+    }
+    td.appendChild(div);tr.appendChild(td);
+  });
+  return tr;
+}
+function dutyDividerRow(cols,termStart,startDay,which){
+  const tr=document.createElement('tr');
+  cols.forEach(([label,date])=>{
+    const td=document.createElement('td');td.className='divider';td.style.background='#f2f3f6';
+    if(date&&!isSkipped(date)){
+      const rot=computeRotationDay(date,termStart,startDay);
+      const txt=(which==='p2')?dutyTextP2[rot-1]:dutyTextP4[rot-1];
+      if(txt){const d=document.createElement('div');d.textContent=txt;d.style.textAlign='center';td.appendChild(d);}
+    }
+    tr.appendChild(td);
+  });
+  return tr;
+}
+
+/* ===== PAGE RENDERER ===== */
+function renderPages(){
+  const out=document.getElementById('pages');out.innerHTML='';
+  const cover=document.createElement('div');
+  cover.className='page';
+  cover.innerHTML=`<div class="cover"><h1>Name__________</h1><h2>St Peter’s Planner</h2></div>`;
+  out.appendChild(cover);
+  const timg=document.createElement('div');
+  timg.className='page';
+  timg.innerHTML=`<div class="cover"><img src="Timetable.png" alt="Timetable" style="width:204mm;margin-top:10mm;"><div>${plainTimetableTable()}</div></div>`;
+  out.appendChild(timg);
+  const summary=document.createElement('div');summary.className='page';summary.innerHTML=generateSummaryTable();out.appendChild(summary);
+  termConfig.forEach((T,i)=>{
+    if(!termInclude[i])return;
+    const start=new Date(T.start);
+    for(let w=0;w<T.weeks;w++){
+      const mon=addDays(start,w*7);
+      out.appendChild(buildPage(mon,start,T.startDay,T.term,w+1,true));
+      out.appendChild(buildPage(mon,start,T.startDay,T.term,w+1,false));
+    }
+  });
+}
+
+/* ===== INIT ===== */
+window.onload=function(){
+  const loadFile=document.getElementById('loadFile');
+  const loadBtn=document.getElementById('loadBtn');
+  if(loadBtn)loadBtn.onclick=()=>loadFile.click();
+  if(loadFile)loadFile.onchange=e=>{
+    const file=e.target.files[0];if(!file)return;
+    const r=new FileReader();r.onload=ev=>loadPlannerPrettyCSV(ev.target.result);r.readAsText(file);
+  };
+  renderPrintControls();
+  renderPages();
+};
+</script>
+
+</body>
+</html>
