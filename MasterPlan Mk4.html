@@ -901,90 +901,130 @@ function deadlineClassesOnDate(date){
   return Array.from(classes).sort();
 }
 
-
 function buildPage(monday, termStart, startDay, termNumber, weekNumber, isFirst){
-  const page=document.createElement('div');
-  page.className='page '+(isFirst?'right-bind':'left-bind');
+  const page = document.createElement('div');
+  page.className = 'page ' + (isFirst ? 'right-bind' : 'left-bind');
 
-  const tbl=document.createElement('table'); tbl.className='week-grid';
-  const thead=document.createElement('thead'); const hr=document.createElement('tr');
+  const tbl = document.createElement('table');
+  tbl.className = 'week-grid';
 
-  const cols=isFirst
-    ? [['Mon', monday], ['Tue', addDays(monday,1)], ['Wed', addDays(monday,2)]]
-    : [['Thu', addDays(monday,3)], ['Fri', addDays(monday,4)], [`Weekend (T${termNumber}-W${weekNumber})`, null]];
+  /* ===== HEADER ===== */
+  const thead = document.createElement('thead');
+  const hr = document.createElement('tr');
 
-  cols.forEach(([label,date])=>{
-    const th=document.createElement('th');
-    if(date){
-      const skipped=isSkipped(date);
-      const dateStr=date.toLocaleDateString('en-NZ',{day:'numeric',month:'short'});
-      if(skipped){
-        th.textContent=`${label} – ${dateStr}`;
-        th.style.background='#e5e7eb'; th.style.color='#777'; th.style.fontStyle='italic';
-      }else{
-        const dayNum=computeRotationDay(date,termStart,startDay);
-        th.textContent=`${label} – ${dateStr} – Day ${dayNum}`;
+  const cols = isFirst
+    ? [['Mon', monday], ['Tue', addDays(monday, 1)], ['Wed', addDays(monday, 2)]]
+    : [['Thu', addDays(monday, 3)], ['Fri', addDays(monday, 4)], [`Weekend (T${termNumber}-W${weekNumber})`, null]];
+
+  cols.forEach(([label,date]) => {
+    const th = document.createElement('th');
+    if (date) {
+      const skipped = isSkipped(date);
+      const dstr = date.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' });
+      if (skipped) {
+        th.textContent = `${label} – ${dstr}`;
+        th.style.background = '#e5e7eb';
+        th.style.color = '#777';
+        th.style.fontStyle = 'italic';
+      } else {
+        const dayNum = computeRotationDay(date, termStart, startDay);
+        th.textContent = `${label} – ${dstr} – Day ${dayNum}`;
       }
-    } else th.textContent=label;
+    } else {
+      th.textContent = label;
+    }
     hr.appendChild(th);
   });
-  thead.appendChild(hr); tbl.appendChild(thead);
 
-  const tbody=document.createElement('tbody');
-  for(let r=0;r<2;r++) tbody.appendChild(rowCells(cols,r,termStart,startDay));
-  tbody.appendChild(dutyDividerRow(cols,termStart,startDay,'p2'));
-  for(let r=2;r<4;r++) tbody.appendChild(rowCells(cols,r,termStart,startDay));
-  tbody.appendChild(dutyDividerRow(cols,termStart,startDay,'p4'));
-  for(let r=4;r<6;r++) tbody.appendChild(rowCells(cols,r,termStart,startDay));
+  thead.appendChild(hr);
+  tbl.appendChild(thead);
 
-  // ===== NOTES ROW (no weekend checklist here anymore) =====
+  /* ===== BODY (Periods + Duties) ===== */
+  const tbody = document.createElement('tbody');
+  for (let r = 0; r < 2; r++) tbody.appendChild(rowCells(cols, r, termStart, startDay));
+  tbody.appendChild(dutyDividerRow(cols, termStart, startDay, 'p2'));
+  for (let r = 2; r < 4; r++) tbody.appendChild(rowCells(cols, r, termStart, startDay));
+  tbody.appendChild(dutyDividerRow(cols, termStart, startDay, 'p4'));
+  for (let r = 4; r < 6; r++) tbody.appendChild(rowCells(cols, r, termStart, startDay));
+
+  /* ===== NOTES ROW ===== */
   const notes = document.createElement('tr');
-  cols.forEach(([label,date])=>{
-    const td=document.createElement('td');
-    td.style.height='22mm';
-    td.style.background='#f9fafb';
-    td.style.borderTop='2px solid #000';
-    td.style.padding='2mm';
-    td.style.fontSize='11px';
-    td.style.lineHeight='1.2';
-    td.style.fontStyle='italic';
-    td.style.color='#444';
+  cols.forEach(([label, date]) => {
+    const td = document.createElement('td');
+    td.style.height = '22mm';
+    td.style.background = '#f9fafb';
+    td.style.borderTop = '2px solid #000';
+    td.style.padding = '2mm';
+    td.style.fontSize = '11px';
+    td.style.lineHeight = '1.2';
+    td.style.fontStyle = 'italic';
+    td.style.color = '#444';
 
-    // ✅ weekday only: show deadlines if class doesn't meet that day
-    if(date){
-      const rot=computeRotationDay(date,termStart,startDay);
-      let cellText=[];
-      Object.keys(classdeadlines).forEach(cls=>{
-        if(cls==="__GLOBAL__") return;
-        classdeadlines[cls].forEach(d=>{
-          if(sameDate(date,d.date)){
-            const base=baseSubject(cls);
-            let hasClassToday=false;
-            for(let p=0;p<6;p++){
-              const s=gridSub[p][rot-1];
-              if(baseSubject(s)===base && !isSkipped(date,s)){hasClassToday=true;break;}
-            }
-            if(!hasClassToday) cellText.push(d.Deadline.trim());
+    if (date) {
+      const rot = computeRotationDay(date, termStart, startDay);
+      let cellText = [];
+
+      Object.keys(classdeadlines).forEach(cls => {
+        classdeadlines[cls].forEach(d => {
+          if (!sameDate(date, d.date)) return;
+
+          const base = baseSubject(cls);
+          const noClass = !base || base.toLowerCase() === 'none';
+
+          // global / non-class entry
+          if (noClass) {
+            if (d.Deadline?.trim()) cellText.push(d.Deadline.trim());
+            return;
           }
+
+          let hasClassToday = false;
+          for (let p = 0; p < 6; p++) {
+            const s = gridSub[p][rot - 1];
+            if (baseSubject(s) === base && !isSkipped(date, s)) {
+              hasClassToday = true;
+              break;
+            }
+          }
+
+          if (!hasClassToday) cellText.push(`${base}: ${d.Deadline.trim()}`);
         });
       });
 
-      if(cellText.length){
-        td.style.fontStyle='normal';
-        td.style.color='#000';
-        td.textContent='Due: '+[...new Set(cellText)].join(', ');
-      }
+if (cellText.length) {
+  const unique = [...new Set(cellText)];
+
+  // Strip "__GLOBAL__:" if present
+  const cleaned = unique.map(x => x.replace(/^__GLOBAL__:\s*/i, '').trim());
+
+  // Split into class events vs global non-class events
+  const classItems = cleaned.filter(x => x.includes(':'));
+  const globalItems = cleaned.filter(x => !x.includes(':'));
+
+  td.style.fontStyle = 'normal';
+  td.style.color = '#000';
+
+  // ✅ Only global (no-class) = simple display
+  if (globalItems.length && !classItems.length) {
+    td.textContent = globalItems.join(', ');
+  }
+
+  // ✅ Class deadlines or mixed = "Due:" format
+  else {
+    td.textContent = 'Due: ' + cleaned.join(', ');
+  }
+}
+
+
     }
 
     notes.appendChild(td);
   });
 
   tbody.appendChild(notes);
-  tbl.appendChild(tbody); 
+  tbl.appendChild(tbody);
   page.appendChild(tbl);
   return page;
 }
-
 
 function rowCells(cols, periodIndex, termStart, startDay) {
   const tr = document.createElement('tr');
