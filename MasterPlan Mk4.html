@@ -947,13 +947,29 @@ cols.forEach(([label, date]) => {
       }
     });
   });
+// === ✅ Global deadlines (Class:None) — appear once in Notes as "Due:" ===
+if (classdeadlines["__GLOBAL__"]) {
+  classdeadlines["__GLOBAL__"].forEach(m => {
+    if (sameDate(date, m.date)) {
+      if (!dueToday["Due"]) dueToday["Due"] = new Set();
+      dueToday["Due"].add(m.Deadline.trim());
+    }
+  });
+}
 
   // Display deadlines that belong here
   if (Object.keys(dueToday).length) {
-    let text = Object.entries(dueToday)
-      .map(([sub, ds]) => `${sub}: ${Array.from(ds).join(', ')}`)
-      .join(' • ');
-    td.textContent = text;
+    // Format deadlines nicely
+let text = Object.entries(dueToday)
+  .filter(([sub]) => sub !== "__GLOBAL__") // 🚫 never show raw internal key
+  .map(([sub, ds]) => {
+    const label = (sub === "Due") ? "Due" : sub;
+    return `${label}: ${Array.from(ds).join(', ')}`;
+  })
+  .join(' • ');
+
+td.textContent = text;
+
   }
 
   notes.appendChild(td);
@@ -1232,8 +1248,13 @@ function insertDeadlinePages(data) {
     const row = data[i];
     if (!row || !row[0]) { i++; continue; }
 
-    if (row[0].startsWith('Class:')) {
-      const className = row[0].replace('Class:', '').trim();
+if (row[0].startsWith('Class:')) {
+  let className = row[0].replace('Class:', '').trim();
+
+  // ✅ Global deadlines (no class tied to timetable)
+  const isGlobal = (className.toLowerCase() === 'none');
+  if (isGlobal) className = "__GLOBAL__";
+
       const nextRow = data[i + 1] || [];
       let DeadlineName = '';
       if (nextRow[0]?.startsWith('Deadline:')) {
@@ -1256,17 +1277,30 @@ function insertDeadlinePages(data) {
         if (k.startsWith(className)) possibleKeys.push(k);
       });
 
-      possibleKeys.forEach(key => {
-        if (!classdeadlines[key]) classdeadlines[key] = [];
-        for (let g = 0; g < Deadlines.length; g++) {
-          const dStr = (dates[g] || '').trim();
-          const iso = ddmmyyyyToISO(dStr);
-          const dObj = iso ? new Date(iso + 'T00:00:00') : null;
-          if (dObj && Deadlines[g]) {
-            classdeadlines[key].push({ date: strip(dObj), Deadline: Deadlines[g] });
-          }
-        }
-      });
+if (isGlobal) {
+  if (!classdeadlines["__GLOBAL__"]) classdeadlines["__GLOBAL__"] = [];
+  for (let g = 0; g < Deadlines.length; g++) {
+    const dStr = (dates[g] || '').trim();
+    const iso = ddmmyyyyToISO(dStr);
+    const dObj = iso ? new Date(iso + 'T00:00:00') : null;
+    if (dObj && Deadlines[g]) {
+      classdeadlines["__GLOBAL__"].push({ date: strip(dObj), Deadline: Deadlines[g] });
+    }
+  }
+} else {
+  possibleKeys.forEach(key => {
+    if (!classdeadlines[key]) classdeadlines[key] = [];
+    for (let g = 0; g < Deadlines.length; g++) {
+      const dStr = (dates[g] || '').trim();
+      const iso = ddmmyyyyToISO(dStr);
+      const dObj = iso ? new Date(iso + 'T00:00:00') : null;
+      if (dObj && Deadlines[g]) {
+        classdeadlines[key].push({ date: strip(dObj), Deadline: Deadlines[g] });
+      }
+    }
+  });
+}
+
 
       // ✅ Only build a printable Deadline page if there are student names
       if (students.length > 0) {
