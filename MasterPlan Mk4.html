@@ -458,23 +458,40 @@ const FIXED_EVENTS=[
 ];
 /* ===== FIXED DEADLINES (do not affect periods but appear in weekly checklist) ===== */
 const FIXED_DEADLINES = [
-  { name: "Share course info", date: "2026-02-05" },
-  { name: "Post term plan", date: "2026-02-07" },
-  { name: "Baseline assessment", date: "2026-02-12" },
-  { name: "First feedback cycle", date: "2026-02-19" },
-  { name: "Parent intro email", date: "2026-02-21" },
-  { name: "Draft comments", date: "2026-02-28" },
-  { name: "Update progress notes", date: "2026-03-02" },
-  { name: "Parent checkin start", date: "2026-03-11" },
-  { name: "Conference prep", date: "2026-03-13" },
-  { name: "Learning meetings", date: "2026-03-18" },
-  { name: "Return assessments", date: "2026-03-19" },
-  { name: "Finalise comments", date: "2026-03-24" },
-  { name: "Unit reflection", date: "2026-03-26" },
-  { name: "Student reflection", date: "2026-03-27" },
-  { name: "Learning review", date: "2026-03-31" }
-];
+  // Insight cycles — evenly spread
+  { name: "Y7–8 insight due",   date: "2026-02-02" }, // Mon
+  { name: "Y9–10 insight due",  date: "2026-02-11" }, // Wed
+  { name: "Y11–13 insight due", date: "2026-02-13" }, // Fri
 
+  { name: "Y7–8 insight chk",   date: "2026-03-02" }, // Mon
+  { name: "Y9–10 insight chk",  date: "2026-03-05" }, // Thu
+  { name: "Y11–13 insight chk", date: "2026-03-12" }, // Thu
+
+  // Comment banks & interviews
+  { name: "Comment banks prep", date: "2026-02-18" }, // Wed
+  { name: "Interview prep open",date: "2026-03-03" }, // Tue
+  { name: "Parent interviews",  date: "2026-03-06" }, // Fri
+  { name: "Interview break",    date: "2026-03-10" }, // Tue
+
+  // Languages / culture
+  { name: "Te Reo week",        date: "2026-03-11" }, // Wed
+  { name: "Pacific lang week",  date: "2026-03-17" }, // Tue
+  { name: "Chinese lang week",     date: "2026-03-26" }, // Thu
+
+  // Non-uniform / pastoral
+  { name: "Non-uniform day",    date: "2026-02-05" }, // Thu
+  { name: "Non-uniform day",    date: "2026-03-20" }, // Fri
+
+  // Exchanges — evenly distributed
+  { name: "Dio exchange",       date: "2026-03-04" }, // Wed
+  { name: "St Paul’s exch",     date: "2026-03-06" }, // Fri 
+  { name: "Kings exch",         date: "2026-02-13" }, // Fri
+  { name: "Epsom exch",         date: "2026-03-18" }, // Wed
+  { name: "Grammar exch",       date: "2026-02-10" }, // Tue
+
+  // Major co-curricular
+  { name: "Summer tourn week",  date: "2026-03-24" }  // Tue
+];
 
 /* Custom events loaded from CSV (skip=false) */
 let events=[];
