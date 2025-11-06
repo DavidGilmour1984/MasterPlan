@@ -303,41 +303,44 @@ button:hover {
 <div class="card" style="margin-bottom:10px;">
   <h3>📘 How to Use the Planner Generator</h3>
   <ol style="font-size:17px;line-height:1.6;color:#111;margin-top:10px;">
+
     <li><b>Select the terms you want to print</b></li>
+
     <li><b>Set Extra Pages</b> for lined, grid, or blank notes using the boxes below.</li>
+
     <li>
-      <b>Create a copy of the spreadsheet template</b> and follow the instructions on it for how to prepare your timetable, duties, and events.<br>
-      <a href="https://docs.google.com/spreadsheets/d/1Vxf0EOxPVutKNeQJZE8-EavPpocSwLBeDrI03sxwWYs/edit?usp=sharing" 
-         target="_blank" 
-         style="color:#2563eb;text-decoration:none;font-weight:500;">
-         📄 Open Planner Spreadsheet Template
-      </a>
+      Log in to <b>KAMAR</b> and export your timetable as a <code>.csv</code> file.<br>
     </li>
+
     <li>
-      Once your spreadsheet is complete, export it as a <code>.csv</code> file.<br>
-      Then click <b>📂 Load Planner</b> button below and select your exported CSV file.<br>
-      ⚠️ <i>Ensure all data is correctly formatted before uploading.</i>
+      Click <b>📂 Load Planner</b> and select the timetable CSV exported from KAMAR.<br>
+      The planner will automatically read your classes, duties, and grid rotation from the file.
     </li>
+
     <li>
-      After loading, the planner will automatically generate all pages.<br>
-      ⚠️ <i>This process takes around 15 seconds — please wait and don’t click again during this time.</i>
+      After loading, the planner will generate all pages.<br>
+      ⚠️ <i>This may take around 15 seconds — please wait and do not click again while processing.</i>
     </li>
+
     <li>
       Once complete, you can:
       <ul style="margin-top:6px;margin-bottom:0;">
-        <li>🖨️ Export to PDF and then print your planner.</li>
+        <li>🖨️ Save as PDF and print your planner</li>
       </ul>
     </li>
+
     <li>
-      Optionally, you can <b>combine your planner PDF with other files</b> such as class photos or cover pages.<br>
+      You may also <b>combine the planner PDF</b> with other files such as class photos or cover pages.<br>
       <a href="https://acrobat.adobe.com/link/acrobat/combine-pdf?x_api_client_id=adobe_com&x_api_client_location=combine_pdf"
          target="_blank"
          style="color:#2563eb;text-decoration:none;font-weight:500;">
          🧩 Open Adobe PDF Combiner
       </a>
     </li>
+
   </ol>
 </div>
+
 
 <!-- ===== Deadline INSTRUCTIONS CARD ===== -->
 <div class="card" style="margin-bottom:10px;">
@@ -397,7 +400,7 @@ button:hover {
 </table>
 
 <div class="button-bar">
-  <button id="loadBtn">📂 Load Planner</button>
+  <button id="loadBtn">📂 Load CSV from KAMAR</button>
   <button id="loadDeadlinesBtn">🎯 Load Deadline CSV</button>
   <input type="file" id="loadDeadlinesFile" accept=".csv" style="display:none;">
   <button id="printBtn">🖨️ Save PDF</button>
@@ -553,11 +556,21 @@ const periods=['P1','P2','P3','P4','P5','P6'];
 
 /* ===== SUBJECT COLOURING (by base subject before '-') ===== */
 let subjects={}; // baseName -> color
-function baseSubject(name){
-  if(!name) return '';
-  const i=name.indexOf('-');
-  return i>0 ? name.slice(0,i).trim() : name.trim();
+function baseSubject(name) {
+  if (!name) return '';
+
+  const trimmed = name.trim();
+
+  // Find last dash in the string
+  const lastDash = trimmed.lastIndexOf('-');
+
+  // If no dash, return entire string
+  if (lastDash === -1) return trimmed;
+
+  // Return everything BEFORE the final dash (keeps "3-11PHX" from "3-11PHX-L2")
+  return trimmed.substring(0, lastDash);
 }
+
 function rebuildSubjectsFromGrid(){
   subjects={};
   const set=new Set();
@@ -1072,7 +1085,7 @@ if (!date && periodIndex === 0) {
     div.style.padding = "2mm";
     div.style.fontSize = "11px";
     div.style.color = "#000";
-    div.innerHTML = `<b>Weekly Deadlines</b><br>` + checklist.join("<br>");
+    div.innerHTML = `<b>Weekly Deadlines and Notices</b><br>` + checklist.join("<br>");
   }
 
   td.appendChild(div);
@@ -1154,14 +1167,25 @@ if (!date && periodIndex === 0) {
           div.appendChild(frac);
 
           let found = [];
-          Object.keys(classdeadlines).forEach(k => {
-            if (k.startsWith(base)) {
-              classdeadlines[k].forEach(m => {
-                if (strip(m.date).getTime() === strip(date).getTime())
-                  found.push(m.Deadline.trim());
-              });
-            }
-          });
+
+// Count how many times this base subject has appeared so far this term up to now
+const soFarIndex = countSoFarForBase(base, termStart, date, periodIndex);
+
+// Find any deadlines for this subject
+Object.keys(classdeadlines).forEach(k => {
+  if (!k.startsWith(base)) return;
+
+  classdeadlines[k].forEach(m => {
+    if (m.periodBased) {
+      // Compare using the period count
+      if (soFarIndex === m.periodNum) found.push(m.Deadline.trim());
+    } else if (m.date && sameDate(date, m.date)) {
+      // For date-based items (faculty meetings, etc.)
+      found.push(m.Deadline.trim());
+    }
+  });
+});
+
 
           if (found.length) {
             const unique = [...new Set(found)];
@@ -1231,55 +1255,61 @@ function savePlannerPrettyCSV(){
   alert('✅ Planner saved.');
 }
 function loadPlannerPrettyCSV(text) {
-  const delim = text.includes('\t') ? '\t' : ',';
-  const lines = text.trim().split(/\r?\n/);
+  const parsed = Papa.parse(text.trim(), { skipEmptyLines: false });
+  const rows = parsed.data;
 
-  gridSub = Array.from({ length: 6 }, () => Array(7).fill(''));
-  dutyTextP2 = Array(7).fill('');
-  dutyTextP4 = Array(7).fill('');
-  events = [];
+  gridSub      = Array.from({ length: 6 }, () => Array(7).fill(''));
+  dutyTextP2   = Array(7).fill('');
+  dutyTextP4   = Array(7).fill('');
+  beforeSchool = Array(7).fill('');
+  events       = [];
 
-  for (let i = 1; i < lines.length; i++) {
-    const parts = lines[i].split(delim).map(s => s.trim());
-    const label = parts[0];
+  const headers = (rows[0] || []).map(x => (x || "").trim());
+  const values  = (rows[1] || []).map(x => (x || "").trim());
 
-    // === Timetable section (same as before)
-    if (/^P[1-6]$/.test(label)) {
-      const r = parseInt(label.slice(1)) - 1;
-      for (let c = 0; c < 7; c++) gridSub[r][c] = parts[c + 1] || '';
-    } 
-    else if (label === 'Duty') {
-      const vals = parts.slice(1, 8).map(s => s.trim());
-      if (dutyTextP2.every(x => !x)) dutyTextP2 = vals;
-      else dutyTextP4 = vals;
-    }
+  const validPeriods = ["P1","P2","I","P3","P4","L","P5","P6"];
 
-    // === Events section
-    else if (/^events$/i.test(label)) {
-      for (let r = i + 2; r < Math.min(i + 52, lines.length); r++) {
-        const row = lines[r].split(delim).map(s => s.trim());
-        if (!row[0]) continue;
-        const name = row[0];
-        const date = ddmmyyyyToISO(row[1]);
-        const periods = (row[2] || '').split('.')
-          .map(x => parseInt(x))
-          .filter(n => n >= 1 && n <= 6);
+  function parseHeader(h) {
+    if (!h) return null;
+    const raw = h.trim().replace(/\s+/g, " ");
+    const parts = raw.split(" ");
+    if (parts.length !== 2) return null;
 
-        if (name && date && periods.length > 0) {
-          const periodsArr = [0, 0, 0, 0, 0, 0];
-          periods.forEach(p => { periodsArr[p - 1] = 1; });
-          events.push({ name, date, periods: periodsArr, include: true, skip: false });
-        }
-      }
-      break;
+    const [dayToken, slot] = parts;
+    if (!/^D[1-7]$/.test(dayToken)) return null;
+    if (!validPeriods.includes(slot)) return null;
+
+    return { day: parseInt(dayToken.substring(1)) - 1, slot };
+  }
+
+  for (let i = 0; i < headers.length; i++) {
+    const head = headers[i];
+    const val  = values[i];
+
+    const parsed = parseHeader(head);
+    if (!parsed) continue;
+    if (!val) continue;
+
+    const { day, slot } = parsed;
+
+    // FULL value now stored (no dash trimming)
+    const cls = val;
+
+    if (slot === "I") { dutyTextP2[day] = cls; continue; }
+    if (slot === "L") { dutyTextP4[day] = cls; continue; }
+
+    if (/^P[1-6]$/.test(slot)) {
+      const p = parseInt(slot.substring(1)) - 1;
+      gridSub[p][day] = cls;
     }
   }
 
   rebuildSubjectsFromGrid();
   renderPrintControls();
   renderPages();
-  alert(`✅ Planner loaded (${events.length} events found).`);
+  alert("✅ Timetable loaded (full cell content, correct duty rows)");
 }
+
 
 // Helper to convert "dd/mm/yyyy" to "yyyy-mm-dd"
 function ddmmyyyyToISO(dmy) {
@@ -1317,33 +1347,22 @@ async function setupDeadlineFileHandlers() {
 }
 
 function insertDeadlinePages(data) {
-  // Reset deadlines and remove any old Deadline pages
   classdeadlines = {};
-  const existingDeadlinePages = Array.from(document.querySelectorAll('.Deadline-page'));
-  existingDeadlinePages.forEach(pg => pg.remove());
-
+  document.querySelectorAll('.Deadline-page').forEach(pg => pg.remove());
   const DeadlinePages = [];
-  let i = 0;
 
+  let i = 0;
   while (i < data.length) {
     const row = data[i];
     if (!row || !row[0]) { i++; continue; }
 
-if (row[0].startsWith('Class:')) {
-  let className = row[0].replace('Class:', '').trim();
-
-  // ✅ Global deadlines (no class tied to timetable)
-  const isGlobal = (className.toLowerCase() === 'none');
-  if (isGlobal) className = "__GLOBAL__";
-
+    if (row[0].startsWith('Class:')) {
+      let className = row[0].replace('Class:', '').trim();
       const nextRow = data[i + 1] || [];
-      let DeadlineName = '';
-      if (nextRow[0]?.startsWith('Deadline:')) {
-        DeadlineName = nextRow[0].replace('Deadline:', '').trim();
-      }
+      let titleRow = nextRow[0]?.startsWith('Deadline:') ? nextRow[0].replace('Deadline:', '').trim() : '';
 
-      const Deadlines = row.slice(1).filter(Boolean);
-      const dates = (data[i + 1] || []).slice(1);
+      const tasks = row.slice(1).filter(Boolean);
+      const values = (data[i + 1] || []).slice(1).map(v => v.trim());
       i += 2;
 
       const students = [];
@@ -1352,55 +1371,53 @@ if (row[0].startsWith('Class:')) {
         i++;
       }
 
-      // ✅ Store deadlines for both base className and timetable variants
-      const possibleKeys = [className];
-      Object.keys(subjects).forEach(k => {
-        if (k.startsWith(className)) possibleKeys.push(k);
-      });
+      // Identify if these are numeric period-based or date-based
+// Determine if all non-empty, non-text entries are numeric
+const numericVals = values.filter(v => v && !isNaN(v));
+const nonEmptyVals = values.filter(v => v);
+const isPeriodBased = numericVals.length === nonEmptyVals.length && numericVals.length > 0;
+      const baseKey = className;
 
-if (isGlobal) {
-  if (!classdeadlines["__GLOBAL__"]) classdeadlines["__GLOBAL__"] = [];
-  for (let g = 0; g < Deadlines.length; g++) {
-    const dStr = (dates[g] || '').trim();
-    const iso = ddmmyyyyToISO(dStr);
-    const dObj = iso ? new Date(iso + 'T00:00:00') : null;
-    if (dObj && Deadlines[g]) {
-      classdeadlines["__GLOBAL__"].push({ date: strip(dObj), Deadline: Deadlines[g] });
-    }
-  }
-} else {
-  possibleKeys.forEach(key => {
-    if (!classdeadlines[key]) classdeadlines[key] = [];
-    for (let g = 0; g < Deadlines.length; g++) {
-      const dStr = (dates[g] || '').trim();
-      const iso = ddmmyyyyToISO(dStr);
-      const dObj = iso ? new Date(iso + 'T00:00:00') : null;
-      if (dObj && Deadlines[g]) {
-        classdeadlines[key].push({ date: strip(dObj), Deadline: Deadlines[g] });
+if (!classdeadlines[baseKey]) classdeadlines[baseKey] = [];
+
+      for (let x = 0; x < tasks.length; x++) {
+        const raw = values[x];
+        if (!raw) continue;
+
+        if (isPeriodBased) {
+          classdeadlines[baseKey].push({
+            periodNum: parseInt(raw),
+            Deadline: tasks[x],
+            periodBased: true
+          });
+        } else {
+          const iso = ddmmyyyyToISO(raw);
+          classdeadlines[baseKey].push({
+            date: strip(new Date(iso + "T00:00:00")),
+            Deadline: tasks[x],
+            periodBased: false
+          });
+        }
       }
-    }
-  });
-}
 
-
-      // ✅ Only build a printable Deadline page if there are student names
       if (students.length > 0) {
-        const pg = buildDeadlinePage(className, DeadlineName, Deadlines, dates, students);
+        const pg = buildDeadlinePage(className, titleRow, tasks, values, students);
         pg.classList.add('Deadline-page');
         DeadlinePages.push(pg);
       }
     } else i++;
   }
 
-  // ✅ Re-render planner first (to ensure deadlines appear in timetable)
+  // Re-render planner so new deadlines appear
   renderPages();
 
-  // ✅ Append Deadline pages AFTER planner and extras
+  // Append student pages
   const out = document.getElementById('pages');
   DeadlinePages.forEach(pg => out.appendChild(pg));
 
-  alert(`✅ ${DeadlinePages.length} Deadline page(s) added — deadlines linked into planner and appended at end.`);
+  alert(`✅ ${DeadlinePages.length} Deadline page(s) added — simplified for period-based tests.`);
 }
+
 
 function buildDeadlinePage(className, DeadlineName, Deadlines, dates, students) {
   const page = document.createElement('div');
