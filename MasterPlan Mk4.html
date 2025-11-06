@@ -999,7 +999,14 @@ function buildPage(monday, termStart, startDay, termNumber, weekNumber, isFirst)
             }
           }
 
-          if (!hasClassToday) cellText.push(`${base}: ${d.Deadline.trim()}`);
+if (!hasClassToday) {
+  // If the deadline name looks like a meeting, show only the meeting title
+  if (/meeting/i.test(d.Deadline)) {
+    cellText.push(d.Deadline.trim());
+  } else {
+    cellText.push(`${base}: ${d.Deadline.trim()}`);
+  }
+}
         });
       });
 
@@ -1177,12 +1184,21 @@ Object.keys(classdeadlines).forEach(k => {
 
   classdeadlines[k].forEach(m => {
     if (m.periodBased) {
-      // Compare using the period count
-      if (soFarIndex === m.periodNum) found.push(m.Deadline.trim());
-    } else if (m.date && sameDate(date, m.date)) {
-      // For date-based items (faculty meetings, etc.)
-      found.push(m.Deadline.trim());
-    }
+  // Identify current term more robustly
+  let currentTerm = null;
+  termConfig.forEach((t, idx) => {
+    const start = strip(new Date(t.start));
+    const end = addDays(start, t.weeks * 7);
+    if (strip(date) >= start && strip(date) <= end) currentTerm = t.term;
+  });
+
+  // Match term only if explicitly specified
+  if (m.termNum && m.termNum !== currentTerm) return;
+
+  // Compare period count
+  if (soFarIndex === m.periodNum) found.push(m.Deadline.trim());
+}
+
   });
 });
 
@@ -1384,20 +1400,35 @@ if (!classdeadlines[baseKey]) classdeadlines[baseKey] = [];
         const raw = values[x];
         if (!raw) continue;
 
-        if (isPeriodBased) {
-          classdeadlines[baseKey].push({
-            periodNum: parseInt(raw),
-            Deadline: tasks[x],
-            periodBased: true
-          });
-        } else {
-          const iso = ddmmyyyyToISO(raw);
-          classdeadlines[baseKey].push({
-            date: strip(new Date(iso + "T00:00:00")),
-            Deadline: tasks[x],
-            periodBased: false
-          });
-        }
+        // Detect entries like "T1P1", "t3p12", or plain "12"
+const termMatch = raw.match(/t(\d+)\s*p(\d+)/i);
+const numMatch = raw.match(/^\d+$/);
+
+if (termMatch) {
+  const termNum = parseInt(termMatch[1]);
+  const periodNum = parseInt(termMatch[2]);
+  classdeadlines[baseKey].push({
+    termNum,
+    periodNum,
+    Deadline: tasks[x],
+    periodBased: true
+  });
+} else if (numMatch) {
+  classdeadlines[baseKey].push({
+    termNum: null, // applies to current term
+    periodNum: parseInt(raw),
+    Deadline: tasks[x],
+    periodBased: true
+  });
+} else {
+  const iso = ddmmyyyyToISO(raw);
+  classdeadlines[baseKey].push({
+    date: strip(new Date(iso + "T00:00:00")),
+    Deadline: tasks[x],
+    periodBased: false
+  });
+}
+
       }
 
       if (students.length > 0) {
