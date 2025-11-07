@@ -334,7 +334,7 @@ button:hover {
         <table style="width:100%;border-collapse:collapse;font-size:16px;margin-bottom:16px;">
           <tr><th style="text-align:left;padding:6px;">Term</th>
               <th style="text-align:center;padding:6px;">Include</th></tr>
-          <tr><td>Term 1</td><td style="text-align:center;"><input type="checkbox" id="term1"></td></tr>
+          <tr><td>Term 1</td><td style="text-align:center;"><input type="checkbox" id="term1" checked></td></tr>
           <tr><td>Term 2</td><td style="text-align:center;"><input type="checkbox" id="term2"></td></tr>
           <tr><td>Term 3</td><td style="text-align:center;"><input type="checkbox" id="term3"></td></tr>
           <tr><td>Term 4</td><td style="text-align:center;"><input type="checkbox" id="term4"></td></tr>
@@ -387,7 +387,7 @@ const DEFAULT_TERMS=[
  {term:4,start:'2026-10-12',weeks:9,startDay:6},
 ];
 let termConfig=JSON.parse(JSON.stringify(DEFAULT_TERMS));
-let termInclude=[false,false,false,false];
+let termInclude=[true,false,false,false];
 
 /* rotation grid (subjects only; values like "9SCI-L4") */
 let gridSub=Array.from({length:6},()=>Array(7).fill(''));
