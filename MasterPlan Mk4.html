@@ -1431,16 +1431,17 @@ function init() {
   renderPages();
 
   // === LIVE TERM CHECKBOX HANDLERS ===
-  ['term1','term2','term3','term4'].forEach((id,i)=>{
-    const el=document.getElementById(id);
-    if(el){
-      el.checked = false; // untick by default
-      el.addEventListener('change',()=>{
-        termInclude[i]=el.checked;
-        renderPages();
-      });
-    }
-  });
+['term1','term2','term3','term4'].forEach((id,i)=>{
+  const el = document.getElementById(id);
+  if(el){
+    el.checked = termInclude[i];      // ✅ use your default array values
+    el.addEventListener('change',()=>{
+      termInclude[i] = el.checked;
+      renderPages();
+    });
+  }
+});
+
 
   // === PRINTING AND EXTRA PAGE INPUTS ===
   const printBtn = document.getElementById('printBtn');
