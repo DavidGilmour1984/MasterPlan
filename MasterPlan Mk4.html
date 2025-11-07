@@ -294,121 +294,80 @@ button:hover {
 }
 
 </style>
-
 <body>
 <div class="wrap">
   <div class="card">
-    <h2>St Peter’s Planner Generator</h2>
-<!-- ===== INSTRUCTIONS CARD ===== -->
-<div class="card" style="margin-bottom:10px;">
-  <h3>📘 How to Use the Planner Generator</h3>
-  <ol style="font-size:17px;line-height:1.6;color:#111;margin-top:10px;">
+    <h2>St Peter’s Planner 2026</h2>
 
-    <li><b>Select the terms you want to print</b></li>
+    <!-- ===== CONTROL PANEL ===== -->
+    <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:40px;margin-top:20px;">
 
-    <li><b>Set Extra Pages</b> for lined, grid, or blank notes using the boxes below.</li>
+      <!-- LEFT SIDE BUTTONS -->
+      <div style="display:flex;flex-direction:column;gap:14px;min-width:260px;">
+        <button id="loadBtn" style="padding:12px 18px;font-size:18px;">📂 Load Timetable CSV</button>
+        <button id="loadDeadlinesBtn" style="padding:12px 18px;font-size:18px;">🎯 Load Deadlines (optional)</button>
+        <button id="printBtn" style="padding:12px 18px;font-size:18px;">🖨️ Save PDF</button>
 
-    <li>
-      Log in to <b>KAMAR</b> and export your timetable as a <code>.csv</code> file.<br>
-    </li>
+        <div style="margin-top:12px;">
+          <label for="teacherCode"
+                 style="font-weight:600;font-size:18px;display:block;margin-bottom:6px;">
+            Teacher Code
+          </label>
+          <input id="teacherCode" type="text" maxlength="20" placeholder="e.g. HDA"
+                 style="padding:10px;font-size:22px;border-radius:10px;
+                        border:1px solid #ccc;width:100%;text-align:center;
+                        text-transform:uppercase;">
+        </div>
 
-    <li>
-      Click <b>📂 Load Planner</b> and select the timetable CSV exported from KAMAR.<br>
-      The planner will automatically read your classes, duties, and grid rotation from the file.
-    </li>
+        <button id="generatePlannerBtn"
+                style="margin-top:16px;background:#16a34a;font-size:20px;
+                       padding:14px;border-radius:10px;">
+          ✅ Generate Planner
+        </button>
+      </div>
 
-    <li>
-      After loading, the planner will generate all pages.<br>
-      ⚠️ <i>This may take around 15 seconds — please wait and do not click again while processing.</i>
-    </li>
+      <!-- RIGHT SIDE: TERMS + EXTRA PAGES -->
+      <div style="background:#f8fafc;border-radius:12px;padding:20px 24px;
+                  box-shadow:0 3px 8px rgba(0,0,0,0.05);min-width:400px;">
+        <h3 style="font-size:20px;margin:0 0 12px 0;text-align:center;">Planner Options</h3>
 
-    <li>
-      Once complete, you can:
-      <ul style="margin-top:6px;margin-bottom:0;">
-        <li>🖨️ Save as PDF and print your planner</li>
-      </ul>
-    </li>
+        <table style="width:100%;border-collapse:collapse;font-size:16px;margin-bottom:16px;">
+          <tr><th style="text-align:left;padding:6px;">Term</th>
+              <th style="text-align:center;padding:6px;">Include</th></tr>
+          <tr><td>Term 1</td><td style="text-align:center;"><input type="checkbox" id="term1"></td></tr>
+          <tr><td>Term 2</td><td style="text-align:center;"><input type="checkbox" id="term2"></td></tr>
+          <tr><td>Term 3</td><td style="text-align:center;"><input type="checkbox" id="term3"></td></tr>
+          <tr><td>Term 4</td><td style="text-align:center;"><input type="checkbox" id="term4"></td></tr>
+        </table>
 
-    <li>
-      You may also <b>combine the planner PDF</b> with other files such as class photos or cover pages.<br>
-      <a href="https://acrobat.adobe.com/link/acrobat/combine-pdf?x_api_client_id=adobe_com&x_api_client_location=combine_pdf"
-         target="_blank"
-         style="color:#2563eb;text-decoration:none;font-weight:500;">
-         🧩 Open Adobe PDF Combiner
-      </a>
-    </li>
+        <h4 style="font-size:18px;margin:10px 0;">Extra Pages</h4>
+        <table style="width:100%;border-collapse:collapse;font-size:15px;">
+          <tr>
+            <td>Lined Pages (10 mm ruled)</td>
+            <td><input id="linedPages" type="number" min="0" max="50" value="2"
+                       style="width:80px;text-align:center;"></td>
+          </tr>
+          <tr>
+            <td>Grid Pages (10 mm squares)</td>
+            <td><input id="gridPages" type="number" min="0" max="50" value="2"
+                       style="width:80px;text-align:center;"></td>
+          </tr>
+          <tr>
+            <td>Blank Note Pages</td>
+            <td><input id="blankPages" type="number" min="0" max="50" value="2"
+                       style="width:80px;text-align:center;"></td>
+          </tr>
+        </table>
+      </div>
+    </div>
 
-  </ol>
-</div>
+    <!-- Hidden file inputs -->
+    <input type="file" id="loadFile" accept=".csv" style="display:none;">
+    <input type="file" id="loadDeadlinesFile" accept=".csv" style="display:none;">
+  </div>
 
-
-<!-- ===== Deadline INSTRUCTIONS CARD ===== -->
-<div class="card" style="margin-bottom:10px;">
-  <h3>🎯 How to Add Deadlines</h3>
-  <ol style="font-size:17px;line-height:1.6;color:#111;margin-top:10px;">
-    <li>
-      Open the <b>Deadlines Template</b> spreadsheet:<br>
-      <a href="https://docs.google.com/spreadsheets/d/1GER9NAsMzJlg3sJFk5mkyJYpulktLufw_aOEZ2kJEwE/edit?gid=803948899#gid=803948899"
-         target="_blank"
-         style="color:#2563eb;text-decoration:none;font-weight:500;">
-         📄 Open Deadlines Template
-      </a>
-    </li>
-    <li>
-      For each class, start a new section with a header row such as:<br>
-      <code>Class: 13BIO</code> (must match your timetable name)
-    </li>
-    <li>
-      On the next line, write:<br>
-      <code>Deadline: Assessment Name</code><br>
-      and list each deadline title across the row (e.g. <b>Deadline 1, Deadline 2, Deadline 3</b>).
-    </li>
-    <li>
-      In the next line, enter the deadline dates below each Deadline heading
-      using <b>dd/mm/yyyy</b> format.
-    </li>
-    <li>
-      Below this, list student names (one per row). These names will appear on the printed Deadline tracking page.
-    </li>
-    <li>
-      Repeat this pattern for each class section (Class → Deadline → Dates → Students).
-    </li>
-    <li>
-      If you just want a deadline but no list at the end of planner dont include any students.
-    </li>
-    <li>
-      Export the completed sheet as a <code>.csv</code> file.<br>
-      In the planner, click <b>🎯 Load Deadline CSV</b> and select your exported file.<br>
-      ✅ The deadlines will now appear in the timetable cells on their due dates.
-    </li>
-  </ol>
-</div>
-
-<!-- ===== CONTROLS ===== -->
-<div id="printControls" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:10px 0;"></div>
-
-<h3>Extra Pages</h3>
-<table class="extra-table">
-  <thead>
-    <tr><th>Page Type</th><th>Number of Pages</th></tr>
-  </thead>
-  <tbody>
-    <tr><td>Lined Pages (10 mm ruled)</td><td><input id="linedPages" type="number" min="0" max="50" value="2"></td></tr>
-    <tr><td>Grid Pages (10 mm squares)</td><td><input id="gridPages" type="number" min="0" max="50" value="2"></td></tr>
-    <tr><td>Blank Note Pages</td><td><input id="blankPages" type="number" min="0" max="50" value="2"></td></tr>
-  </tbody>
-</table>
-
-<div class="button-bar">
-  <button id="loadBtn">📂 Load CSV from KAMAR</button>
-  <button id="loadDeadlinesBtn">🎯 Load Deadline CSV</button>
-  <input type="file" id="loadDeadlinesFile" accept=".csv" style="display:none;">
-  <button id="printBtn">🖨️ Save PDF</button>
-  <input type="file" id="loadFile" accept=".csv" style="display:none;">
-</div>
-
-</div>
-<div id="pages"></div>
+  <!-- Generated pages -->
+  <div id="pages"></div>
 </div>
 
 
@@ -428,7 +387,7 @@ const DEFAULT_TERMS=[
  {term:4,start:'2026-10-12',weeks:9,startDay:6},
 ];
 let termConfig=JSON.parse(JSON.stringify(DEFAULT_TERMS));
-let termInclude=[true,true,true,true];
+let termInclude=[false,false,false,false];
 
 /* rotation grid (subjects only; values like "9SCI-L4") */
 let gridSub=Array.from({length:6},()=>Array(7).fill(''));
@@ -1270,61 +1229,14 @@ function savePlannerPrettyCSV(){
   document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
   alert('✅ Planner saved.');
 }
+// ===== CSV LOAD (store only; don't render yet) =====
+let currentTimetableCSV = '';
+
 function loadPlannerPrettyCSV(text) {
-  const parsed = Papa.parse(text.trim(), { skipEmptyLines: false });
-  const rows = parsed.data;
-
-  gridSub      = Array.from({ length: 6 }, () => Array(7).fill(''));
-  dutyTextP2   = Array(7).fill('');
-  dutyTextP4   = Array(7).fill('');
-  beforeSchool = Array(7).fill('');
-  events       = [];
-
-  const headers = (rows[0] || []).map(x => (x || "").trim());
-  const values  = (rows[1] || []).map(x => (x || "").trim());
-
-  const validPeriods = ["P1","P2","I","P3","P4","L","P5","P6"];
-
-  function parseHeader(h) {
-    if (!h) return null;
-    const raw = h.trim().replace(/\s+/g, " ");
-    const parts = raw.split(" ");
-    if (parts.length !== 2) return null;
-
-    const [dayToken, slot] = parts;
-    if (!/^D[1-7]$/.test(dayToken)) return null;
-    if (!validPeriods.includes(slot)) return null;
-
-    return { day: parseInt(dayToken.substring(1)) - 1, slot };
-  }
-
-  for (let i = 0; i < headers.length; i++) {
-    const head = headers[i];
-    const val  = values[i];
-
-    const parsed = parseHeader(head);
-    if (!parsed) continue;
-    if (!val) continue;
-
-    const { day, slot } = parsed;
-
-    // FULL value now stored (no dash trimming)
-    const cls = val;
-
-    if (slot === "I") { dutyTextP2[day] = cls; continue; }
-    if (slot === "L") { dutyTextP4[day] = cls; continue; }
-
-    if (/^P[1-6]$/.test(slot)) {
-      const p = parseInt(slot.substring(1)) - 1;
-      gridSub[p][day] = cls;
-    }
-  }
-
-  rebuildSubjectsFromGrid();
-  renderPrintControls();
-  renderPages();
-  alert("✅ Timetable loaded (full cell content, correct duty rows)");
+  currentTimetableCSV = text; // store raw CSV for later filtering
+  alert("✅ Timetable CSV loaded and stored. Enter staff code and click Generate to build planner.");
 }
+
 
 
 // Helper to convert "dd/mm/yyyy" to "yyyy-mm-dd"
@@ -1510,44 +1422,167 @@ function buildDeadlinePage(className, DeadlineName, Deadlines, dates, students) 
 }
 
 
-//* ===== INIT ===== */
 function init() {
-  // Render planner setup
-  renderPrintControls();
+  // ✅ Safely skip if printControls container missing
+  const printControlsHost = document.getElementById('printControls');
+  if (printControlsHost) renderPrintControls();
+
   rebuildSubjectsFromGrid();
   renderPages();
 
-  // Printing and live updates for extra page counts
-  document.getElementById('printBtn').onclick = () => window.print();
+  // === LIVE TERM CHECKBOX HANDLERS ===
+  ['term1','term2','term3','term4'].forEach((id,i)=>{
+    const el=document.getElementById(id);
+    if(el){
+      el.checked = false; // untick by default
+      el.addEventListener('change',()=>{
+        termInclude[i]=el.checked;
+        renderPages();
+      });
+    }
+  });
+
+  // === PRINTING AND EXTRA PAGE INPUTS ===
+  const printBtn = document.getElementById('printBtn');
+  if (printBtn) printBtn.onclick = () => window.print();
+
   ['blankPages', 'gridPages', 'linedPages'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.oninput = () => renderPages();
   });
 
-  // === Enable Deadlines CSV upload handlers ===
+  // === ENABLE DEADLINES CSV UPLOAD HANDLERS ===
   setupDeadlineFileHandlers();
 }
 
 
-window.onload = function() {
+window.onload = function () {
   init();
 
-  const saveBtn = document.getElementById('saveBtn');
   const loadBtn = document.getElementById('loadBtn');
   const loadFile = document.getElementById('loadFile');
+  const generateBtn = document.getElementById('generatePlannerBtn');
+  const deadlinesFile = document.getElementById('loadDeadlinesFile');
+  const teacherInput = document.getElementById('teacherCode');
 
-  if (saveBtn) saveBtn.addEventListener('click', savePlannerPrettyCSV);
-  if (loadBtn) loadBtn.addEventListener('click', () => { loadFile.value = ''; loadFile.click(); });
-  if (loadFile) {
+  let timetableLoaded = false;
+  let deadlinesLoaded = false;
+  let teacherCode = '';
+
+  // === LOAD TIMETABLE CSV ===
+  if (loadBtn && loadFile) {
+    loadBtn.addEventListener('click', () => {
+      loadFile.value = '';
+      loadFile.click();
+    });
+
     loadFile.addEventListener('change', e => {
       const file = e.target.files[0];
       if (!file) return;
       const reader = new FileReader();
-      reader.onload = ev => loadPlannerPrettyCSV(ev.target.result);
+      reader.onload = ev => {
+        currentTimetableCSV = ev.target.result;
+        timetableLoaded = true;
+        alert('✅ Timetable CSV loaded. Enter staff code, then click Generate.');
+      };
       reader.readAsText(file);
     });
   }
+
+  // === TEACHER CODE INPUT ===
+  if (teacherInput) {
+    teacherInput.addEventListener('input', () => {
+      teacherCode = teacherInput.value.trim().toUpperCase();
+    });
+  }
+
+  // === DEADLINES FILE HANDLER ===
+  if (deadlinesFile) {
+    deadlinesFile.addEventListener('change', async e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const text = await file.text();
+      const data = Papa.parse(text.trim(), { skipEmptyLines: 'greedy' }).data;
+      insertDeadlinePages(data);
+      deadlinesLoaded = true;
+      alert('✅ Deadlines CSV loaded.');
+    });
+  }
+
+  // === GENERATE PLANNER ===
+  if (generateBtn) {
+    generateBtn.addEventListener('click', () => {
+      if (!timetableLoaded) {
+        alert('⚠️ Please load a timetable CSV first.');
+        return;
+      }
+      if (!teacherCode) {
+        alert('⚠️ Please enter the teacher’s 3-letter code.');
+        return;
+      }
+
+      if (!deadlinesLoaded) {
+        const proceed = confirm('No deadlines CSV loaded. Continue without deadlines?');
+        if (!proceed) return;
+      }
+
+      // ✅ Build timetable grid
+      filterTimetableForTeacher(teacherCode);
+
+      // ✅ Rebuild colors & render planner
+      rebuildSubjectsFromGrid();
+      renderPages();
+
+      alert(`✅ Planner generated for ${teacherCode}${deadlinesLoaded ? ' (with deadlines)' : ' (no deadlines)'}.`);
+    });
+  }
+
+  // === INITIAL BLANK RENDER ===
+  renderPages();
 };
+
+
+
+// === Filters the full timetable grid to just one teacher ===
+function filterTimetableForTeacher(code) {
+  // Keep only the row with matching teacher code in first column
+  const table = Papa.parse(currentTimetableCSV.trim()).data;
+  const headers = table[0];
+  const row = table.find(r => r[0] && r[0].trim().toUpperCase() === code);
+
+  if (!row) {
+    alert(`❌ Could not find a timetable for code ${code}.`);
+    return;
+  }
+
+  // Convert header & row to simplified grid structure
+  gridSub = Array.from({ length: 6 }, () => Array(7).fill(''));
+  dutyTextP2 = Array(7).fill('');
+  dutyTextP4 = Array(7).fill('');
+
+  function parseHeader(h) {
+    if (!h) return null;
+    const m = h.match(/^D(\d)\s*(P\d|I|L)$/i);
+    if (!m) return null;
+    return { day: parseInt(m[1]) - 1, slot: m[2] };
+  }
+
+  for (let i = 1; i < headers.length; i++) {
+    const parsed = parseHeader(headers[i]);
+    if (!parsed) continue;
+    const val = row[i]?.trim() || '';
+    if (!val) continue;
+
+    if (parsed.slot === 'I') dutyTextP2[parsed.day] = val;
+    else if (parsed.slot === 'L') dutyTextP4[parsed.day] = val;
+    else if (parsed.slot.startsWith('P')) {
+      const p = parseInt(parsed.slot.substring(1)) - 1;
+      gridSub[p][parsed.day] = val;
+    }
+  }
+
+  rebuildSubjectsFromGrid();
+}
 
 
 </script>
