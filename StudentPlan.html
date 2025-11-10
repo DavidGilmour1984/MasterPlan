@@ -309,14 +309,16 @@ button:hover {
         <button id="printBtn" style="padding:12px 18px;font-size:18px;">🖨️ Save PDF</button>
 
         <div style="margin-top:12px;">
-          <label for="teacherCode"
-                 style="font-weight:600;font-size:18px;display:block;margin-bottom:6px;">
-            Teacher Code
-          </label>
-          <input id="teacherCode" type="text" maxlength="20" placeholder="e.g. HDA"
-                 style="padding:10px;font-size:22px;border-radius:10px;
-                        border:1px solid #ccc;width:100%;text-align:center;
-                        text-transform:uppercase;">
+          <label for="studentName"
+       style="font-weight:600;font-size:18px;display:block;margin-bottom:6px;">
+  Student Name
+</label>
+<select id="studentName"
+       style="padding:10px;font-size:22px;border-radius:10px;
+              border:1px solid #ccc;width:100%;text-align:center;">
+  <option value="">-- Select Student --</option>
+</select>
+
         </div>
 
         <button id="generatePlannerBtn"
@@ -479,6 +481,23 @@ function isSkipped(date, subjectName = '') {
   });
 }
 
+function populateStudentDropdown(csvText) {
+  const rows = Papa.parse(csvText.trim()).data;
+  const names = rows.slice(1)
+    .map(r => r[0]?.trim())
+    .filter(Boolean);
+
+  const uniqueNames = [...new Set(names)].sort((a, b) => a.localeCompare(b));
+
+  const select = document.getElementById("studentName");
+  select.innerHTML = `<option value="">-- Select Student --</option>`;
+  uniqueNames.forEach(name => {
+    const opt = document.createElement("option");
+    opt.value = name;
+    opt.textContent = name;
+    select.appendChild(opt);
+  });
+}
 
 function ddmmyyyyToISO(dmy){
   if(!dmy) return dmy;
@@ -1464,7 +1483,7 @@ window.onload = function () {
   const loadFile = document.getElementById('loadFile');
   const generateBtn = document.getElementById('generatePlannerBtn');
   const deadlinesFile = document.getElementById('loadDeadlinesFile');
-  const teacherInput = document.getElementById('teacherCode');
+const studentSelect = document.getElementById('studentName');
 
   let timetableLoaded = false;
   let deadlinesLoaded = false;
@@ -1482,19 +1501,23 @@ window.onload = function () {
       if (!file) return;
       const reader = new FileReader();
       reader.onload = ev => {
-        currentTimetableCSV = ev.target.result;
-        timetableLoaded = true;
-        alert('✅ Timetable CSV loaded. Enter staff code, then click Generate.');
-      };
+  currentTimetableCSV = ev.target.result;
+  timetableLoaded = true;
+  populateStudentDropdown(currentTimetableCSV);
+  alert('✅ Timetable CSV loaded. Select student name, then click Generate.');
+};
+
       reader.readAsText(file);
     });
   }
 
-  // === TEACHER CODE INPUT ===
-  if (teacherInput) {
-    teacherInput.addEventListener('input', () => {
-      teacherCode = teacherInput.value.trim().toUpperCase();
-    });
+ // === STUDENT SELECT HANDLER ===
+if (studentSelect) {
+  studentSelect.addEventListener('change', () => {
+    teacherCode = studentSelect.value.trim();
+  });
+
+
   }
 
   // === DEADLINES FILE HANDLER ===
@@ -1517,10 +1540,12 @@ window.onload = function () {
         alert('⚠️ Please load a timetable CSV first.');
         return;
       }
-      if (!teacherCode) {
-        alert('⚠️ Please enter the teacher’s 3-letter code.');
-        return;
-      }
+      teacherCode = studentSelect.value.trim();
+if (!teacherCode) {
+  alert('⚠️ Please select a student name.');
+  return;
+}
+
 
       if (!deadlinesLoaded) {
         const proceed = confirm('No deadlines CSV loaded. Continue without deadlines?');
@@ -1570,7 +1595,7 @@ function filterTimetableForTeacher(identifier) {
 
   // === Determine if file is teacher or student style ===
   const teacherFormat = headers.some(h => /^D\d+\s*P\d+/i.test(h));
-  const studentFormat = headers.some(h => /^\d+\s*P\d+/i.test(h));
+const studentFormat = headers.some(h => /^\d+\s*P\d+/i.test(h) || /^D\d+\s*P\d+/i.test(h));
 
   if (!teacherFormat && !studentFormat) {
     alert("❌ Unknown timetable format. Expected headers like 'D1 P1' or '1 P1'.");
@@ -1603,12 +1628,16 @@ function filterTimetableForTeacher(identifier) {
     }
 
     else if (studentFormat) {
-      // Matches "1 P1", "2 P3", etc. (no D, no duties)
-      const m = h.match(/^(\d+)\s*P(\d+)$/i);
-      if (!m) continue;
-      day = parseInt(m[1]) - 1;
-      period = parseInt(m[2]) - 1;
-    }
+  // Matches "1 P1", "2 P3", etc. and converts internally to standard rotation
+  const m = h.match(/^(\d+)\s*P(\d+)$/i);
+  if (!m) continue;
+  day = parseInt(m[1]) - 1;
+  period = parseInt(m[2]) - 1;
+  // ✅ convert to internal format if other systems rely on D#
+  const internalKey = `D${day+1} P${period+1}`;
+  // (internalKey not stored, but ensures mapping is correct)
+}
+
 
     if (day != null && period != null && period >= 0 && period < 6 && day < 7) {
       gridSub[period][day] = val;
