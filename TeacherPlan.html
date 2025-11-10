@@ -1,0 +1,1613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>STP Planner 2026</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<style>
+:root {
+  --bg:#f5f7fb; --card:#fff; --ink:#111; --muted:#6b7280;
+  --accent:#2563eb; --accentDark:#1e40af;
+  --grid:#e5e7eb; --line:#d1d5db; --head:#f8fafc;
+}
+
+*{box-sizing:border-box}
+
+body {
+  margin:0;
+  padding:20px;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:Helvetica,Arial,sans-serif;
+}
+
+.wrap {
+  max-width:900px;
+  margin:0 auto;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:20px;
+}
+
+/* ---------- CARD STYLE ---------- */
+.card {
+  background:var(--card);
+  border-radius:16px;
+  padding:24px 28px;
+  box-shadow:0 8px 25px rgba(0,0,0,.08);
+  width:100%;
+}
+
+h2 {
+  margin:0 0 12px 0;
+  font-size:26px;
+  text-align:center;
+}
+
+h3 {
+  margin-top:20px;
+  font-size:20px;
+  font-weight:600;
+  border-bottom:2px solid var(--grid);
+  padding-bottom:4px;
+}
+
+button, input {
+  font-family:inherit;
+}
+
+/* ---------- INPUTS ---------- */
+input[type=number] {
+  width:80px;
+  padding:8px 10px;
+  font-size:18px;
+  border:1px solid var(--grid);
+  border-radius:10px;
+  background:#fff;
+  text-align:center;
+}
+
+/* ---------- BUTTONS ---------- */
+button {
+  background:var(--accent);
+  color:#fff;
+  border:none;
+  cursor:pointer;
+  padding:10px 16px;
+  border-radius:12px;
+  font-size:18px;
+  transition:background .2s;
+}
+
+button:hover {
+  background:var(--accentDark);
+}
+
+/* ---------- TABLE ---------- */
+.extra-table {
+  width:100%;
+  border-collapse:collapse;
+  margin-top:10px;
+  table-layout:fixed;
+}
+
+.extra-table th, .extra-table td {
+  border:1px solid var(--line);
+  padding:10px;
+  text-align:center;
+  font-size:16px;
+}
+
+.extra-table th {
+  background:var(--head);
+  font-weight:600;
+}
+
+/* ---------- BUTTON BAR ---------- */
+.button-bar {
+  display:flex;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap:12px;
+  margin-top:20px;
+}
+
+/* ---------- PRINT & PAGE ---------- */
+.page {
+  width:210mm;
+  height:260mm;             /* fixed height, not min-height */
+  background:#fff;
+  color:#000;
+  margin:0 auto 8px auto;
+  padding:5mm 0 5mm 0;      /* less padding top/bottom */
+  page-break-after:always;
+  position:relative;
+  transform:scale(0.9);     /* ↓ shrink content slightly */
+  transform-origin: top center;
+}
+
+.week-grid th {
+  border:1px solid #000;
+  padding:4mm;
+  text-align:center;
+  width:20%;
+}
+
+.week-grid td {
+  border:1px solid #000;
+  padding:0;
+  vertical-align:top;
+  text-align:left;
+  width:20%;
+  position:relative;
+}
+
+.slot {
+  position:relative;
+  min-height:40mm;
+  overflow:hidden;
+}
+
+.hl {
+  position:absolute;
+  top:0;
+  left:0;
+  font-weight:700;
+  font-size:17px;
+  line-height:1.1;
+  border-radius:3px;
+  max-width:100%;
+  word-wrap:break-word;
+  display:inline-block;
+  text-align:left;
+  padding:1.5mm 2mm;
+
+  /* === Ensure background colors and gradients print === */
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+  color-adjust: exact !important;
+  background-clip: border-box !important;
+  mix-blend-mode: normal !important;
+}
+
+
+.frac {
+  position:absolute;
+  top:2px;
+  right:4px;
+  font-size:11px;
+  color:#666;
+  font-weight:400;
+}
+
+.divider {
+  height:6mm;
+  background:#f2f3f6;
+  border:none;
+}
+
+.cover {
+  position:absolute;
+  top:0;left:0;right:0;bottom:0;
+  width:100%;height:100%;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+}
+
+.cover h1 {
+  font-size:72px;
+  margin:0;
+  font-weight:700;
+}
+
+.cover h2 {
+  font-size:32px;
+  margin:10px 0 20px 0;
+  font-weight:500;
+}
+
+.cover img {
+  width:120mm;
+  max-width:90%;
+  height:auto;
+  margin-top:10mm;
+}
+
+.event-label {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  height:100%;
+  background:#eceff3;
+  color:#555;
+  font-style:italic;
+  text-align:center;
+  border-radius:2px;
+  padding:3mm;
+}
+
+.summary-table {
+  border-collapse:collapse;
+  width:100%;
+  margin-top:20px;
+  table-layout:fixed;
+}
+
+.summary-table th, .summary-table td {
+  border:1px solid #000;
+  padding:6px;
+  text-align:center;
+  font-size:14px;
+  word-wrap:break-word;
+}
+
+.summary-table th {
+  background:#f2f2f2;
+}
+
+@media print {
+  /* Hide everything except the planner pages */
+  body {
+    background: #fff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  .card, .no-print, #printControls {
+    display: none !important;
+  }
+
+  /* Show only planner pages */
+  .page {
+    display: block !important;
+    width: 210mm !important;
+    height: 297mm !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    transform: none !important;
+    page-break-after: always !important;
+  }
+
+  /* Force A4 portrait layout with no extra margins */
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  /* Ensure colors and highlights print correctly */
+  .hl {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    background-clip: border-box !important;
+    mix-blend-mode: normal !important;
+  }
+}
+
+</style>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h2>St Peter’s Planner 2026</h2>
+
+    <!-- ===== CONTROL PANEL ===== -->
+    <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:40px;margin-top:20px;">
+
+      <!-- LEFT SIDE BUTTONS -->
+      <div style="display:flex;flex-direction:column;gap:14px;min-width:260px;">
+        <button id="loadBtn" style="padding:12px 18px;font-size:18px;">📂 Load Timetable CSV</button>
+        <button id="loadDeadlinesBtn" style="padding:12px 18px;font-size:18px;">🎯 Load Deadlines (optional)</button>
+        <button id="printBtn" style="padding:12px 18px;font-size:18px;">🖨️ Save PDF</button>
+
+        <div style="margin-top:12px;">
+          <label for="teacherCode"
+       style="font-weight:600;font-size:18px;display:block;margin-bottom:6px;">
+  Teacher Code
+</label>
+<select id="teacherCode"
+       style="padding:10px;font-size:22px;border-radius:10px;
+              border:1px solid #ccc;width:100%;text-align:center;
+              text-transform:uppercase;">
+  <option value="">-- Select Staff Code --</option>
+</select>
+
+        </div>
+
+        <button id="generatePlannerBtn"
+                style="margin-top:16px;background:#16a34a;font-size:20px;
+                       padding:14px;border-radius:10px;">
+          ✅ Generate Planner
+        </button>
+      </div>
+
+      <!-- RIGHT SIDE: TERMS + EXTRA PAGES -->
+      <div style="background:#f8fafc;border-radius:12px;padding:20px 24px;
+                  box-shadow:0 3px 8px rgba(0,0,0,0.05);min-width:400px;">
+        <h3 style="font-size:20px;margin:0 0 12px 0;text-align:center;">Planner Options</h3>
+
+        <table style="width:100%;border-collapse:collapse;font-size:16px;margin-bottom:16px;">
+          <tr><th style="text-align:left;padding:6px;">Term</th>
+              <th style="text-align:center;padding:6px;">Include</th></tr>
+          <tr><td>Term 1</td><td style="text-align:center;"><input type="checkbox" id="term1" checked></td></tr>
+          <tr><td>Term 2</td><td style="text-align:center;"><input type="checkbox" id="term2"></td></tr>
+          <tr><td>Term 3</td><td style="text-align:center;"><input type="checkbox" id="term3"></td></tr>
+          <tr><td>Term 4</td><td style="text-align:center;"><input type="checkbox" id="term4"></td></tr>
+        </table>
+
+        <h4 style="font-size:18px;margin:10px 0;">Extra Pages</h4>
+        <table style="width:100%;border-collapse:collapse;font-size:15px;">
+          <tr>
+            <td>Lined Pages (10 mm ruled)</td>
+            <td><input id="linedPages" type="number" min="0" max="50" value="2"
+                       style="width:80px;text-align:center;"></td>
+          </tr>
+          <tr>
+            <td>Grid Pages (10 mm squares)</td>
+            <td><input id="gridPages" type="number" min="0" max="50" value="2"
+                       style="width:80px;text-align:center;"></td>
+          </tr>
+          <tr>
+            <td>Blank Note Pages</td>
+            <td><input id="blankPages" type="number" min="0" max="50" value="2"
+                       style="width:80px;text-align:center;"></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Hidden file inputs -->
+    <input type="file" id="loadFile" accept=".csv" style="display:none;">
+    <input type="file" id="loadDeadlinesFile" accept=".csv" style="display:none;">
+  </div>
+
+  <!-- Generated pages -->
+  <div id="pages"></div>
+</div>
+
+
+<script>
+/* ===== BASE DATA ===== */
+const PALETTE = [
+  '#FFB3BA','#FFDFBA','#FFFFBA','#BAFFC9','#BAE1FF','#E0BBFF',
+  'repeating-linear-gradient(135deg,#FFB3BA 0%,#FFB3BA 20%,#BAE1FF 20%,#BAE1FF 40%)',
+  'repeating-linear-gradient(135deg,#BAFFC9 0%,#BAFFC9 20%,#E0BBFF 20%,#E0BBFF 40%)',
+  'repeating-linear-gradient(135deg,#FFFFBA 0%,#FFFFBA 20%,#A8D0FF 20%,#A8D0FF 40%)'
+];
+
+const DEFAULT_TERMS=[
+ {term:1,start:'2026-02-02',weeks:9,startDay:1},
+ {term:2,start:'2026-04-20',weeks:10,startDay:5},
+ {term:3,start:'2026-07-20',weeks:10,startDay:2},
+ {term:4,start:'2026-10-12',weeks:9,startDay:6},
+];
+let termConfig=JSON.parse(JSON.stringify(DEFAULT_TERMS));
+let termInclude=[true,false,false,false];
+
+/* rotation grid (subjects only; values like "9SCI-L4") */
+let gridSub=Array.from({length:6},()=>Array(7).fill(''));
+
+/* Duty text entries by rotation day (1..7) */
+let dutyTextP2 = Array(7).fill('');
+let dutyTextP4 = Array(7).fill('');
+
+/* Fixed holidays (skip=true, whole day) */
+const FIXED_EVENTS=[
+ {include:true,year:11,skip:true,name:'Diploma Day',date:'2026-02-11',periods:[1,1,1,1,1,1]},
+ {include:true,year:9,skip:true,name:'Orientation',date:'2026-02-10',periods:[1,0,0,0,0,0]},
+ {include:true,skip:true,name:'',date:'2026-02-02',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'Waitangi Day',date:'2026-02-06',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'Athletics Day',date:'2026-02-25',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'Leave Weekend',date:'2026-03-09',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'Parent Conferences',date:'2026-04-02',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'Good Friday',date:'2026-04-03',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'Teacher Only Day',date:'2026-04-20',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'ANZAC Day',date:'2026-04-27',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'Leave Weekend',date:'2026-05-29',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:"King's Birthday",date:'2026-06-01',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'Teacher Only Day',date:'2026-07-20',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'Parent Conferences',date:'2026-08-21',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'Leave Weekend',date:'2026-08-24',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'Leave Weekend',date:'2026-08-25',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'Labour Day',date:'2026-10-26',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'Ends of Year',date:'2026-12-10',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'End of Year',date:'2026-12-11',periods:[1,1,1,1,1,1]},
+];
+/* ===== FIXED DEADLINES (do not affect periods but appear in weekly checklist) ===== */
+const FIXED_DEADLINES = [
+  // Insight cycles — evenly spread
+  { name: "Y7–8 insight due",   date: "2026-02-02" }, // Mon
+  { name: "Y9–10 insight due",  date: "2026-02-11" }, // Wed
+  { name: "Y11–13 insight due", date: "2026-02-13" }, // Fri
+
+  { name: "Y7–8 insight chk",   date: "2026-03-02" }, // Mon
+  { name: "Y9–10 insight chk",  date: "2026-03-05" }, // Thu
+  { name: "Y11–13 insight chk", date: "2026-03-12" }, // Thu
+
+  // Comment banks & interviews
+  { name: "Comment banks prep", date: "2026-02-18" }, // Wed
+  { name: "Interview prep open",date: "2026-03-03" }, // Tue
+  { name: "Parent interviews",  date: "2026-03-06" }, // Fri
+  { name: "Interview break",    date: "2026-03-10" }, // Tue
+
+  // Languages / culture
+  { name: "Te Reo week",        date: "2026-03-11" }, // Wed
+  { name: "Pacific lang week",  date: "2026-03-17" }, // Tue
+  { name: "Chinese lang week",     date: "2026-03-26" }, // Thu
+
+  // Non-uniform / pastoral
+  { name: "Non-uniform day",    date: "2026-02-05" }, // Thu
+  { name: "Non-uniform day",    date: "2026-03-20" }, // Fri
+
+  // Exchanges — evenly distributed
+  { name: "Dio exchange",       date: "2026-03-04" }, // Wed
+  { name: "St Paul’s exch",     date: "2026-03-06" }, // Fri 
+  { name: "Kings exch",         date: "2026-02-13" }, // Fri
+  { name: "Epsom exch",         date: "2026-03-18" }, // Wed
+  { name: "Grammar exch",       date: "2026-02-10" }, // Tue
+
+  // Major co-curricular
+  { name: "Summer tourn week",  date: "2026-03-24" }  // Tue
+];
+
+/* Custom events loaded from CSV (skip=false) */
+let events=[];
+let classdeadlines = {};
+
+/* ===== UTILITIES ===== */
+function allEvents(){return[...FIXED_EVENTS,...events];}
+function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x;}
+function strip(d){const z=new Date(d);return new Date(z.getFullYear(),z.getMonth(),z.getDate());}
+function sameDate(a,b){return strip(a).getTime()===strip(b).getTime();}
+function isSkipped(date, subjectName = '') {
+  const base = baseSubject(subjectName);
+  // Match one or two digits at start of subject name
+  const yearMatch = base.match(/^(\d{1,2})/);
+  const subjYear = yearMatch ? parseInt(yearMatch[1]) : null;
+
+  // A date is skipped only if there is a skip event that applies to this subject’s year
+  return allEvents().some(ev => {
+    if (!ev.include || !ev.skip || !sameDate(date, ev.date)) return false;
+    // If event has a specific year, it only applies to that year
+    if (ev.year && subjYear && ev.year !== subjYear) return false;
+    return true;
+  });
+}
+function populateTeacherDropdown(csvText) {
+  const rows = Papa.parse(csvText.trim()).data;
+  const codes = rows.slice(1)                 // skip header
+    .map(r => r[0]?.trim().toUpperCase())     // first column only
+    .filter(Boolean);                         // remove blanks
+
+  const uniqueCodes = [...new Set(codes)].sort();
+
+  const select = document.getElementById("teacherCode");
+  select.innerHTML = `<option value="">-- Select Staff Code --</option>`;
+  uniqueCodes.forEach(code => {
+    const opt = document.createElement("option");
+    opt.value = code;
+    opt.textContent = code;
+    select.appendChild(opt);
+  });
+}
+
+
+function ddmmyyyyToISO(dmy){
+  if(!dmy) return dmy;
+  if(/^\d{4}-\d{2}-\d{2}$/.test(dmy)) return dmy;
+  const m=dmy.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if(!m) return dmy;
+  const dd=String(m[1]).padStart(2,'0');
+  const mm=String(m[2]).padStart(2,'0');
+  return `${m[3]}-${mm}-${dd}`;
+}
+function deltaTeachingDaysSkipAware(s, e) {
+  s = strip(s);
+  e = strip(e);
+  if (e < s) return -deltaTeachingDaysSkipAware(e, s);
+  let c = 0, x = new Date(s);
+
+  while (x <= e) {
+    const w = x.getDay();
+    // Only skip weekends and *global* skip days (no year tag)
+    const globallySkipped = allEvents().some(ev =>
+      ev.include && ev.skip && !ev.year && sameDate(x, ev.date)
+    );
+    if (w >= 1 && w <= 5 && !globallySkipped) c++;
+    x.setDate(x.getDate() + 1);
+  }
+  return c - 1;
+}
+
+function computeRotationDay(dateObj,termStart,startDay){
+  const k=deltaTeachingDaysSkipAware(termStart,dateObj);
+  const idx=((startDay-1)+k)%7; return ((idx+7)%7)+1;
+}
+const periods=['P1','P2','P3','P4','P5','P6'];
+
+/* ===== SUBJECT COLOURING (by base subject before '-') ===== */
+let subjects={}; // baseName -> color
+function baseSubject(name) {
+  if (!name) return '';
+
+  const trimmed = name.trim();
+
+  // Find last dash in the string
+  const lastDash = trimmed.lastIndexOf('-');
+
+  // If no dash, return entire string
+  if (lastDash === -1) return trimmed;
+
+  // Return everything BEFORE the final dash (keeps "3-11PHX" from "3-11PHX-L2")
+  return trimmed.substring(0, lastDash);
+}
+
+function rebuildSubjectsFromGrid(){
+  subjects={};
+  const set=new Set();
+  for(let r=0;r<6;r++) for(let c=0;c<7;c++){
+    const s=(gridSub[r][c]||'').trim();
+    if(s) set.add(baseSubject(s));
+  }
+  Array.from(set).sort().forEach((name,idx)=>subjects[name]=PALETTE[idx%PALETTE.length]);
+}
+
+/* ===== EVENTS IMPACT ===== */
+function eventsAffecting(dateObj,periodIndex){
+  return allEvents()
+    .filter(ev=>ev.include && !ev.skip && sameDate(dateObj,ev.date) && ev.periods[periodIndex])
+    .map(ev=>ev.name);
+}
+
+/* ===== FRACTION HELPERS (by base subject) ===== */
+function countUnaffectedForBase(base, termStart){
+  let total=0;
+  const tObj=termConfig.find(t=>strip(t.start).getTime()===strip(termStart).getTime());
+  if(!tObj) return 0;
+  for(let w=0;w<tObj.weeks;w++){
+    for(let d=0;d<5;d++){
+      const date=addDays(new Date(tObj.start), w*7+d);
+      if(isSkipped(date)) continue;
+      const rot=computeRotationDay(date, new Date(tObj.start), tObj.startDay);
+      for(let p=0;p<6;p++){
+        const s=gridSub[p][rot-1];
+        if(baseSubject(s)===base){
+          const isFriP1=(d===4 && p===0); // Friday (0=Sun...4=Thu? careful) — we used d loop 0..4 mapping Mon..Fri -> dayOfWeek? We'll keep PD rule below via weekday check instead.
+          const evHits=eventsAffecting(date,p);
+          const dow=strip(date).getDay(); // 1..5 Mon..Fri
+          if(dow===5 && p===0) continue;        // PD Friday P1 is not a teachable contact
+          if(evHits.length===0) total++;
+        }
+      }
+    }
+  }
+  return total;
+}
+function countSoFarForBase(base, termStart, date, periodIndex){
+  let count=0;
+  const tObj=termConfig.find(t=>strip(t.start).getTime()===strip(termStart).getTime());
+  if(!tObj) return 0;
+  const endDate=strip(date);
+  for(let w=0;w<tObj.weeks;w++){
+    for(let d=0;d<5;d++){
+      const curr=strip(addDays(new Date(tObj.start),w*7+d));
+      if(curr>endDate) return count;
+      if(isSkipped(curr)) continue;
+      const rot=computeRotationDay(curr, new Date(tObj.start), tObj.startDay);
+      for(let p=0;p<6;p++){
+        const s=gridSub[p][rot-1];
+        if(baseSubject(s)===base){
+          const dow=curr.getDay();
+          if(dow===5 && p===0) continue; // PD Friday P1
+          const evHits=eventsAffecting(curr,p);
+          if(evHits.length===0){
+            count++;
+            if(sameDate(curr,endDate) && p===periodIndex) return count;
+          }
+        }
+      }
+    }
+  }
+  return count;
+}
+
+/* ===== RENDER ===== */
+function renderPrintControls(){
+  const host=document.getElementById('printControls'); host.innerHTML='';
+  termConfig.forEach((t,i)=>{
+    const lbl=document.createElement('label');
+    lbl.style.border='1px solid var(--grid)'; lbl.style.padding='6px 10px'; lbl.style.borderRadius='10px'; lbl.style.background='#fff';
+    lbl.innerHTML=`<input type="checkbox" ${termInclude[i]?'checked':''} style="transform:scale(1.2);margin-right:8px;"> Include Term ${t.term}`;
+    const cb=lbl.querySelector('input');
+    cb.onchange=e=>{termInclude[i]=e.target.checked; renderPages();};
+    host.appendChild(lbl);
+  });
+}
+
+function renderPages() {
+  const out = document.getElementById('pages');
+  out.innerHTML = '';
+
+  // ===== DETERMINE WHICH TERMS ARE SELECTED =====
+  const includedTerms = termConfig
+    .filter((t, i) => termInclude[i])
+    .map(t => t.term);
+  const termListText = includedTerms.length === 4
+    ? 'Terms 1, 2, 3, and 4'
+    : includedTerms.length > 1
+      ? 'Terms ' + includedTerms.slice(0, -1).join(', ') + ' and ' + includedTerms.slice(-1)
+      : includedTerms.length === 1
+        ? 'Term ' + includedTerms[0]
+        : 'No Terms Selected';
+
+  // ===== COVER PAGE =====
+  const cover = document.createElement('div');
+  cover.className = 'page';
+  cover.innerHTML = `
+    <div class="cover">
+      <h1>Name__________</h1>
+      <h2>St Peter’s Planner 2026</h2>
+      <p style="font-size:40px;color:#444;margin-top:8px;">${termListText}</p>
+      <img src="Crest.png" alt="Crest">
+    </div>`;
+  out.appendChild(cover);
+
+  // ===== TIMETABLE PAGE =====
+  const timg = document.createElement('div');
+  timg.className = 'page';
+  timg.innerHTML = `
+    <div class="cover">
+      <div>
+        <img src="Timetable.png" alt="Timetable"
+          style="width:204mm;max-width:95%;height:auto;margin-top:10mm;">
+        <div style="margin-top:16mm;">${plainTimetableTable()}</div>
+      </div>
+    </div>`;
+  out.appendChild(timg);
+
+  // ===== SUMMARY PAGE =====
+  const summary = document.createElement('div');
+  summary.className = 'page';
+  summary.innerHTML = generateSummaryTable();
+  out.appendChild(summary);
+
+  // ===== WEEKLY PAGES =====
+  termConfig.forEach((T, i) => {
+    if (!termInclude[i]) return;
+    const start = new Date(T.start + 'T00:00:00');
+    for (let w = 0; w < T.weeks; w++) {
+      const mon = addDays(start, w * 7);
+      out.appendChild(buildPage(mon, start, T.startDay, T.term, w + 1, true));
+      out.appendChild(buildPage(mon, start, T.startDay, T.term, w + 1, false));
+    }
+  });
+
+  // ===== EXTRA PAGES =====
+  const blankCount = parseInt(document.getElementById('blankPages')?.value || 0);
+  const gridCount = parseInt(document.getElementById('gridPages')?.value || 0);
+  const linedCount = parseInt(document.getElementById('linedPages')?.value || 0);
+
+  for (let i = 0; i < linedCount; i++) {
+    const pg = document.createElement('div');
+    pg.className = 'page';
+    pg.innerHTML = `<div class="cover" style="background:linear-gradient(to bottom,#ccc 1px,transparent 1px) 0 0/100% 10mm;"></div>`;
+    out.appendChild(pg);
+  }
+  for (let i = 0; i < gridCount; i++) {
+    const pg = document.createElement('div');
+    pg.className = 'page';
+    pg.innerHTML = `<div class="cover" style="background:
+      linear-gradient(to right,#ccc 1px,transparent 1px) 0 0/10mm 10mm,
+      linear-gradient(to bottom,#ccc 1px,transparent 1px) 0 0/10mm 10mm;"></div>`;
+    out.appendChild(pg);
+  }
+  for (let i = 0; i < blankCount; i++) {
+    const pg = document.createElement('div');
+    pg.className = 'page';
+    pg.innerHTML = `<div class="cover" style="background:#fff;"></div>`;
+    out.appendChild(pg);
+  }
+}
+
+
+function plainTimetableTable(){
+  let html='<table class="summary-table" style="table-layout:fixed;"><thead><tr><th>Period\\Day</th>'+
+           ['Day 1','Day 2','Day 3','Day 4','Day 5','Day 6','Day 7'].map(d=>`<th>${d}</th>`).join('')+
+           '</tr></thead><tbody>';
+
+  // Period rows
+  for(let r=0;r<6;r++){
+    html+=`<tr><th>${periods[r]}</th>`;
+    for(let c=0;c<7;c++){
+      const s=(gridSub[r][c]||'').trim();
+      const base=baseSubject(s);
+      const color=base&&subjects[base]?subjects[base]:'#fff';
+      html+=`<td style="padding:6px;">
+        <div style="display:inline-block;padding:4px 6px;border-radius:4px;background:${color};">${s}</div>
+      </td>`;
+    }
+    html+='</tr>';
+
+    // insert duty rows after P2 and P4
+    if (r===1 || r===3) {
+      const dutyArray = (r===1 ? dutyTextP2 : dutyTextP4);
+      html+=`<tr><td style="background:#f2f3f6;font-weight:700;">Duty</td>`;
+      for (let c=0;c<7;c++){
+        const txt = dutyArray[c] ? dutyArray[c] : '';
+        html+=`<td style="background:#f2f3f6;font-style:italic;">${txt}</td>`;
+      }
+      html+=`</tr>`;
+    }
+  }
+
+  html+='</tbody></table>';
+  return html;
+}
+
+
+function generateSummaryTable() {
+  let html = '<h2>Class Contact Summary</h2><table class="summary-table"><tr><th>Subject</th>';
+  for (let t = 1; t <= 4; t++) html += `<th>Term ${t}</th>`;
+  html += '<th>Total</th></tr>';
+
+  const bases = Object.keys(subjects);
+  bases.forEach(base => {
+    let yearTotal = 0, yearPossible = 0, yearHours = 0;
+    html += `<tr><td>${base}</td>`;
+
+    for (let ti = 0; ti < 4; ti++) {
+      const T = termConfig[ti];
+      const start = new Date(T.start);
+      let total = 0, affected = 0;
+
+      for (let w = 0; w < T.weeks; w++) {
+        for (let day = 0; day < 5; day++) {
+          const current = addDays(start, w * 7 + day);
+          const dow = strip(current).getDay(); // 1–5 Mon–Fri
+          const fullDay = allEvents().some(ev => ev.include && ev.skip && sameDate(current, ev.date));
+          if (fullDay) continue;
+          const rot = computeRotationDay(current, start, T.startDay);
+          for (let p = 0; p < 6; p++) {
+            const s = gridSub[p][rot - 1];
+            if (baseSubject(s) === base) {
+              total++;
+
+              // Check if period is affected by an event
+              let evHit = allEvents().some(ev =>
+                ev.include &&
+                !ev.skip &&
+                sameDate(current, ev.date) &&
+                ev.periods[p]
+              );
+
+              // Friday PD rule
+              if (!evHit && dow === 5 && p === 0) evHit = true;
+
+              if (evHit) affected++;
+            }
+          }
+        }
+      }
+
+      const unaffected = total - affected;
+      const hours = (unaffected * 50) / 60;
+      yearTotal += unaffected;
+      yearPossible += total;
+      yearHours += hours;
+
+      // ✅ Always show all terms regardless of inclusion
+      html += `<td>${unaffected}/${total} <span style="color:#555;">(${hours.toFixed(0)}Hr)</span></td>`;
+    }
+
+    html += `<td>${yearTotal}/${yearPossible} <span style="color:#555;">(${yearHours.toFixed(0)}Hr)</span></td></tr>`;
+  });
+
+  html += '</table>';
+
+  // ===== TERM DATES SECTION =====
+  // ===== SUPER COMPACT INLINE TERM DATES =====
+html += '<h3 style="margin-top:14px;">Term Dates</h3>';
+
+let termLine = termConfig.map(T => {
+  const start = new Date(T.start);
+  const end = addDays(start, T.weeks * 7 - 1);
+  const fmt = d => d.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' });
+  return `Term ${T.term}: ${fmt(start)} – ${fmt(end)}`;
+}).join(' _____ ');
+
+html += `<div style="
+  font-size:14px;
+  line-height:1.3;
+  margin-bottom:8px;
+  padding:2px 0;
+">
+  ${termLine}
+</div>`;
+
+
+ // ===== EVENTS & HOLIDAYS SECTION (3-column flowing list) =====
+html += '<h3 style="margin-top:20px;">Key Dates & Events</h3>';
+const all = allEvents().filter(ev => ev.include).sort((a, b) => new Date(a.date) - new Date(b.date));
+
+termConfig.forEach(T => {
+  const start = new Date(T.start);
+  const end = addDays(start, T.weeks * 7);
+  const inTerm = all.filter(ev => {
+    const d = new Date(ev.date);
+    return d >= start && d <= end;
+  });
+
+  if (inTerm.length > 0) {
+    html += `<h4 style="margin:10px 0 6px 0;">Term ${T.term}</h4>`;
+    html += `<ul style="
+      font-size:13px;
+      line-height:1.4;
+      column-count:3;
+      column-gap:24px;
+      margin:0;
+      padding-left:18px;
+    ">`;
+
+    inTerm.forEach(ev => {
+      const d = new Date(ev.date);
+      const dateStr = d.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' });
+
+      const activePeriods = ev.periods
+        .map((v, i) => (v ? i + 1 : null))
+        .filter(Boolean);
+
+      const periodsText = activePeriods.length === 6
+        ? 'All day'
+        : 'P' + activePeriods.join(',');
+
+      const yearText = ev.year ? `Y${ev.year}` : 'All';
+
+      html += `<li>${dateStr} — ${ev.name || 'Holiday'} — ${yearText} ${periodsText}</li>`;
+    });
+
+    html += '</ul>';
+  }
+});
+
+
+  return html;
+}
+
+// ===== deadlines → classes due on a given date (unique, sorted)
+function deadlineClassesOnDate(date){
+  const d = strip(date).getTime();
+  const classes = new Set();
+  Object.entries(classdeadlines).forEach(([cls, arr])=>{
+    arr.forEach(m=>{
+      if (strip(m.date).getTime() === d) classes.add(baseSubject(cls));
+    });
+  });
+  return Array.from(classes).sort();
+}
+
+function buildPage(monday, termStart, startDay, termNumber, weekNumber, isFirst){
+  const page = document.createElement('div');
+  page.className = 'page ' + (isFirst ? 'right-bind' : 'left-bind');
+
+  const tbl = document.createElement('table');
+  tbl.className = 'week-grid';
+
+  /* ===== HEADER ===== */
+  const thead = document.createElement('thead');
+  const hr = document.createElement('tr');
+
+  const cols = isFirst
+    ? [['Mon', monday], ['Tue', addDays(monday, 1)], ['Wed', addDays(monday, 2)]]
+    : [['Thu', addDays(monday, 3)], ['Fri', addDays(monday, 4)], [`Weekend (T${termNumber}-W${weekNumber})`, null]];
+
+  cols.forEach(([label,date]) => {
+    const th = document.createElement('th');
+    if (date) {
+      const skipped = isSkipped(date);
+      const dstr = date.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' });
+      if (skipped) {
+        th.textContent = `${label} – ${dstr}`;
+        th.style.background = '#e5e7eb';
+        th.style.color = '#777';
+        th.style.fontStyle = 'italic';
+      } else {
+        const dayNum = computeRotationDay(date, termStart, startDay);
+        th.textContent = `${label} – ${dstr} – Day ${dayNum}`;
+      }
+    } else {
+      th.textContent = label;
+    }
+    hr.appendChild(th);
+  });
+
+  thead.appendChild(hr);
+  tbl.appendChild(thead);
+
+  /* ===== BODY (Periods + Duties) ===== */
+  const tbody = document.createElement('tbody');
+  for (let r = 0; r < 2; r++) tbody.appendChild(rowCells(cols, r, termStart, startDay));
+  tbody.appendChild(dutyDividerRow(cols, termStart, startDay, 'p2'));
+  for (let r = 2; r < 4; r++) tbody.appendChild(rowCells(cols, r, termStart, startDay));
+  tbody.appendChild(dutyDividerRow(cols, termStart, startDay, 'p4'));
+  for (let r = 4; r < 6; r++) tbody.appendChild(rowCells(cols, r, termStart, startDay));
+
+  /* ===== NOTES ROW ===== */
+  const notes = document.createElement('tr');
+  cols.forEach(([label, date]) => {
+    const td = document.createElement('td');
+    td.style.height = '22mm';
+    td.style.background = '#f9fafb';
+    td.style.borderTop = '2px solid #000';
+    td.style.padding = '2mm';
+    td.style.fontSize = '11px';
+    td.style.lineHeight = '1.2';
+    td.style.fontStyle = 'italic';
+    td.style.color = '#444';
+
+    if (date) {
+      const rot = computeRotationDay(date, termStart, startDay);
+      let cellText = [];
+
+      Object.keys(classdeadlines).forEach(cls => {
+        classdeadlines[cls].forEach(d => {
+          if (!sameDate(date, d.date)) return;
+
+          const base = baseSubject(cls);
+          const noClass = !base || base.toLowerCase() === 'none';
+
+          // global / non-class entry
+          if (noClass) {
+            if (d.Deadline?.trim()) cellText.push(d.Deadline.trim());
+            return;
+          }
+
+          let hasClassToday = false;
+          for (let p = 0; p < 6; p++) {
+            const s = gridSub[p][rot - 1];
+            if (baseSubject(s) === base && !isSkipped(date, s)) {
+              hasClassToday = true;
+              break;
+            }
+          }
+
+if (!hasClassToday) {
+  // If the deadline name looks like a meeting, show only the meeting title
+  if (/meeting/i.test(d.Deadline)) {
+    cellText.push(d.Deadline.trim());
+  } else {
+    cellText.push(`${base}: ${d.Deadline.trim()}`);
+  }
+}
+        });
+      });
+
+if (cellText.length) {
+  const unique = [...new Set(cellText)];
+
+  // Strip "__GLOBAL__:" if present
+  const cleaned = unique.map(x => x.replace(/^__GLOBAL__:\s*/i, '').trim());
+
+  // Split into class events vs global non-class events
+  const classItems = cleaned.filter(x => x.includes(':'));
+  const globalItems = cleaned.filter(x => !x.includes(':'));
+
+  td.style.fontStyle = 'normal';
+  td.style.color = '#000';
+
+  // ✅ Only global (no-class) = simple display
+  if (globalItems.length && !classItems.length) {
+    td.textContent = globalItems.join(', ');
+  }
+
+  // ✅ Class deadlines or mixed = "Due:" format
+  else {
+    td.textContent = 'Due: ' + cleaned.join(', ');
+  }
+}
+
+
+    }
+
+    notes.appendChild(td);
+  });
+
+  tbody.appendChild(notes);
+  tbl.appendChild(tbody);
+  page.appendChild(tbl);
+  return page;
+}
+
+function rowCells(cols, periodIndex, termStart, startDay) {
+  const tr = document.createElement('tr');
+
+  cols.forEach(([label, date]) => {
+    const td = document.createElement('td');
+    const div = document.createElement('div');
+    div.className = 'slot';
+    div.style.position = 'relative';
+
+// ===== WEEKEND P1 CHECKLIST — HARD-CODED DEADLINES (full week range) =====
+if (!date && periodIndex === 0) {
+  // Find the Monday on this planner page
+  let monday = null;
+  for (let i = 0; i < cols.length; i++) {
+    const d = cols[i][1];
+    if (d && strip(d).getDay() === 1) { // Monday
+      monday = strip(d);
+      break;
+    }
+  }
+
+  // Safety fallback
+  if (!monday) monday = strip(cols[0][1]);
+
+  // Define full-week range: previous Saturday → upcoming Friday
+  const startRange = strip(addDays(monday, -2)); // Saturday before
+  const endRange = strip(addDays(monday, 4));    // Friday
+
+  const checklist = [];
+
+  function dayCode(d) {
+    return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][strip(d).getDay()];
+  }
+
+  // ✅ Include any fixed deadline within Sat–Fri range
+  FIXED_DEADLINES.forEach(fd => {
+    const d = strip(new Date(fd.date + "T00:00:00"));
+    if (d.getTime() >= startRange.getTime() && d.getTime() <= endRange.getTime()) {
+      checklist.push(`□ ${fd.name} (${dayCode(d)})`);
+    }
+  });
+
+  if (checklist.length) {
+    div.style.padding = "2mm";
+    div.style.fontSize = "11px";
+    div.style.color = "#000";
+    div.innerHTML = `<b>Weekly Deadlines and Notices</b><br>` + checklist.join("<br>");
+  }
+
+  td.appendChild(div);
+  tr.appendChild(td);
+  return;
+}
+
+
+    // ===== REGULAR WEEKDAY CELL HANDLING =====
+    if (date) {
+      const rot = computeRotationDay(date, termStart, startDay);
+      const s = gridSub[periodIndex]?.[rot - 1] || '';
+      const base = baseSubject(s);
+      const dow = strip(date).getDay();
+
+      // Friday PD
+      if (dow === 5 && periodIndex === 0) {
+        const eventsToday = allEvents()
+          .filter(ev => ev.include && sameDate(date, ev.date))
+          .map(ev => ev.name);
+        const pd = document.createElement('div');
+        pd.className = 'event-label';
+        pd.textContent = eventsToday.length ? eventsToday.join(' / ') : 'Professional Development';
+        div.appendChild(pd);
+        td.appendChild(div);
+        tr.appendChild(td);
+        return;
+      }
+
+      // Skip logic
+      const skipped = allEvents().some(ev =>
+        ev.include && ev.skip && sameDate(date, ev.date) &&
+        (!ev.year || (base.match(/^(\d{1,2})/) && parseInt(base.match(/^(\d{1,2})/)[1]) === ev.year)) &&
+        ev.periods?.[periodIndex] === 1
+      );
+
+      if (skipped) {
+        const names = allEvents()
+          .filter(ev => ev.include && ev.skip && sameDate(date, ev.date))
+          .filter(ev => {
+            if (!ev.year) return true;
+            const m = base.match(/^(\d{1,2})/);
+            const sy = m ? parseInt(m[1]) : null;
+            return sy === ev.year;
+          })
+          .map(ev => ev.name);
+
+        if (names.length) {
+          const evDiv = document.createElement('div');
+          evDiv.className = 'event-label';
+          evDiv.textContent = names.join(' / ');
+          div.appendChild(evDiv);
+        } else if (s) {
+          const span = document.createElement('span');
+          span.className = 'hl';
+          span.textContent = s;
+          if (base in subjects) span.style.background = subjects[base];
+          div.appendChild(span);
+        }
+      } else {
+        const hits = eventsAffecting(date, periodIndex);
+        if (hits.length) {
+          const evDiv = document.createElement('div');
+          evDiv.className = 'event-label';
+          evDiv.textContent = hits.join(' / ');
+          div.appendChild(evDiv);
+        } else if (s) {
+          const span = document.createElement('span');
+          span.className = 'hl';
+          span.textContent = s;
+          if (base in subjects) span.style.background = subjects[base];
+          div.appendChild(span);
+
+          const total = countUnaffectedForBase(base, termStart);
+          const count = countSoFarForBase(base, termStart, date, periodIndex);
+          const frac = document.createElement('div');
+          frac.className = 'frac';
+          frac.textContent = `${count}/${total}`;
+          div.appendChild(frac);
+
+          let found = [];
+
+// Count how many times this base subject has appeared so far this term up to now
+const soFarIndex = countSoFarForBase(base, termStart, date, periodIndex);
+
+// Find any deadlines for this subject
+Object.keys(classdeadlines).forEach(k => {
+  if (!k.startsWith(base)) return;
+
+  classdeadlines[k].forEach(m => {
+    if (m.periodBased) {
+  // Identify current term more robustly
+  let currentTerm = null;
+  termConfig.forEach((t, idx) => {
+    const start = strip(new Date(t.start));
+    const end = addDays(start, t.weeks * 7);
+    if (strip(date) >= start && strip(date) <= end) currentTerm = t.term;
+  });
+
+  // Match term only if explicitly specified
+  if (m.termNum && m.termNum !== currentTerm) return;
+
+  // Compare period count
+  if (soFarIndex === m.periodNum) found.push(m.Deadline.trim());
+}
+
+  });
+});
+
+
+          if (found.length) {
+            const unique = [...new Set(found)];
+            const box = document.createElement('div');
+            box.style.position = 'absolute';
+            box.style.bottom = '2px';
+            box.style.left = '4px';
+            box.style.fontSize = '11px';
+            box.style.fontStyle = 'italic';
+            box.style.color = '#333';
+            box.style.opacity = '0.9';
+            box.textContent = 'Due: ' + unique.join(', ');
+            div.appendChild(box);
+          }
+        }
+      }
+    }
+
+    td.appendChild(div);
+    tr.appendChild(td);
+  });
+
+  return tr;
+}
+
+
+
+function dutyDividerRow(cols,termStart,startDay,which){
+  const tr=document.createElement('tr');
+  cols.forEach(([label,date])=>{
+    const td=document.createElement('td'); td.className='divider'; td.style.background='#f2f3f6';
+    if(date && !isSkipped(date)){
+      const rot=computeRotationDay(date,termStart,startDay);
+      const txt=(which==='p2')?dutyTextP2[rot-1]:dutyTextP4[rot-1];
+      if(txt && txt.trim()){
+        const d=document.createElement('div'); d.textContent=txt; d.style.fontStyle='italic'; d.style.color='#333'; d.style.textAlign='center';
+        td.appendChild(d);
+      }
+    }
+    tr.appendChild(td);
+  });
+  return tr;
+}
+
+/* ===== CSV SAVE (readable format) ===== */
+function savePlannerPrettyCSV(){
+  let csv='Period\\Day,Day 1,Day 2,Day 3,Day 4,Day 5,Day 6,Day 7,,Events,Name,Date,Periods affected\n';
+
+  for(let r=0;r<6;r++){
+    const row=[periods[r]];
+    for(let c=0;c<7;c++) row.push((gridSub[r][c]||'').replace(/,/g,' '));
+    csv+=row.join(',')+',,,,\n';
+    if(r===1) csv+=['Duty',...dutyTextP2.map(x=>x.replace(/,/g,' ')),',,,'].join(',')+'\n';
+    if(r===3) csv+=['Duty',...dutyTextP4.map(x=>x.replace(/,/g,' ')),',,,'].join(',')+'\n';
+  }
+  // events header
+  csv+=',,,,,,,,'+['Events','Name','Date','Periods affected'].join(',')+'\n';
+  events.forEach(ev=>{
+    const plist=ev.periods.map((v,i)=>v?i+1:null).filter(Boolean).join(',');
+    csv+=',,,,,,,,,'+[ev.name, ev.date, plist].join(',')+'\n';
+  });
+
+  const blob=new Blob([csv],{type:'text/csv'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='planner_pretty.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+  alert('✅ Planner saved.');
+}
+// ===== CSV LOAD (store only; don't render yet) =====
+let currentTimetableCSV = '';
+
+function loadPlannerPrettyCSV(text) {
+  currentTimetableCSV = text; // store raw CSV for later filtering
+  alert("✅ Timetable CSV loaded and stored. Enter staff code and click Generate to build planner.");
+}
+
+
+
+// Helper to convert "dd/mm/yyyy" to "yyyy-mm-dd"
+function ddmmyyyyToISO(dmy) {
+  if (!dmy) return '';
+  dmy = dmy.trim();
+  const m = dmy.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if (!m) return dmy;
+  const [_, d, mo, y] = m;
+  return `${y}-${mo.padStart(2, '0')}-${d.padStart(2, '0')}`;
+}
+/* ============================================================
+   📘 Deadline PAGES GENERATOR (INSERTED BETWEEN PLANNER & EXTRA)
+   ============================================================ */
+
+/* ============================================================
+   🎯 DeadlineS FILE HANDLER
+   ============================================================ */
+async function setupDeadlineFileHandlers() {
+  const loadDeadlinesBtn = document.getElementById('loadDeadlinesBtn');
+  const loadDeadlinesFile = document.getElementById('loadDeadlinesFile');
+  if (!loadDeadlinesBtn || !loadDeadlinesFile) return;
+
+  loadDeadlinesBtn.addEventListener('click', () => {
+    loadDeadlinesFile.value = '';
+    loadDeadlinesFile.click();
+  });
+
+  loadDeadlinesFile.addEventListener('change', async e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const text = await file.text();
+    const data = Papa.parse(text.trim(), { skipEmptyLines: 'greedy' }).data;
+    insertDeadlinePages(data);
+  });
+}
+
+function insertDeadlinePages(data) {
+  classdeadlines = {};
+  document.querySelectorAll('.Deadline-page').forEach(pg => pg.remove());
+  const DeadlinePages = [];
+
+  let i = 0;
+  while (i < data.length) {
+    const row = data[i];
+    if (!row || !row[0]) { i++; continue; }
+
+    if (row[0].startsWith('Class:')) {
+      let className = row[0].replace('Class:', '').trim();
+      const nextRow = data[i + 1] || [];
+      let titleRow = nextRow[0]?.startsWith('Deadline:') ? nextRow[0].replace('Deadline:', '').trim() : '';
+
+      const tasks = row.slice(1).filter(Boolean);
+      const values = (data[i + 1] || []).slice(1).map(v => v.trim());
+      i += 2;
+
+      const students = [];
+      while (i < data.length && data[i][0] && !data[i][0].startsWith('Class:')) {
+        students.push(data[i][0]);
+        i++;
+      }
+
+      // Identify if these are numeric period-based or date-based
+// Determine if all non-empty, non-text entries are numeric
+const numericVals = values.filter(v => v && !isNaN(v));
+const nonEmptyVals = values.filter(v => v);
+const isPeriodBased = numericVals.length === nonEmptyVals.length && numericVals.length > 0;
+      const baseKey = className;
+
+if (!classdeadlines[baseKey]) classdeadlines[baseKey] = [];
+
+      for (let x = 0; x < tasks.length; x++) {
+        const raw = values[x];
+        if (!raw) continue;
+
+        // Detect entries like "T1P1", "t3p12", or plain "12"
+const termMatch = raw.match(/t(\d+)\s*p(\d+)/i);
+const numMatch = raw.match(/^\d+$/);
+
+if (termMatch) {
+  const termNum = parseInt(termMatch[1]);
+  const periodNum = parseInt(termMatch[2]);
+  classdeadlines[baseKey].push({
+    termNum,
+    periodNum,
+    Deadline: tasks[x],
+    periodBased: true
+  });
+} else if (numMatch) {
+  classdeadlines[baseKey].push({
+    termNum: null, // applies to current term
+    periodNum: parseInt(raw),
+    Deadline: tasks[x],
+    periodBased: true
+  });
+} else {
+  const iso = ddmmyyyyToISO(raw);
+  classdeadlines[baseKey].push({
+    date: strip(new Date(iso + "T00:00:00")),
+    Deadline: tasks[x],
+    periodBased: false
+  });
+}
+
+      }
+
+      if (students.length > 0) {
+        const pg = buildDeadlinePage(className, titleRow, tasks, values, students);
+        pg.classList.add('Deadline-page');
+        DeadlinePages.push(pg);
+      }
+    } else i++;
+  }
+
+  // Re-render planner so new deadlines appear
+  renderPages();
+
+  // Append student pages
+  const out = document.getElementById('pages');
+  DeadlinePages.forEach(pg => out.appendChild(pg));
+
+  alert(`✅ ${DeadlinePages.length} Deadline page(s) added — simplified for period-based tests.`);
+}
+
+
+function buildDeadlinePage(className, DeadlineName, Deadlines, dates, students) {
+  const page = document.createElement('div');
+  page.className = 'page Deadline-page';
+
+  const classTitle = document.createElement('div');
+  classTitle.style.fontSize = '22px';
+  classTitle.style.fontWeight = 'bold';
+  classTitle.style.textAlign = 'center';
+  classTitle.textContent = `Class: ${className}`;
+  page.appendChild(classTitle);
+
+  const DeadlineTitle = document.createElement('div');
+  DeadlineTitle.style.fontSize = '18px';
+  DeadlineTitle.style.textAlign = 'center';
+  DeadlineTitle.style.color = '#333';
+  DeadlineTitle.style.fontStyle = 'italic';
+  DeadlineTitle.style.marginBottom = '10px';
+  DeadlineTitle.textContent = `Assessment: ${DeadlineName}`;
+  page.appendChild(DeadlineTitle);
+
+  const table = document.createElement('table');
+  table.style.width = '100%';
+  table.style.borderCollapse = 'collapse';
+  table.style.fontSize = '15px';
+
+  const thead = document.createElement('thead');
+  const tbody = document.createElement('tbody');
+
+  const trDeadlines = document.createElement('tr');
+  trDeadlines.innerHTML = '<th>deadline</th>' + Deadlines.map(g => `<th>${g}</th>`).join('');
+  thead.appendChild(trDeadlines);
+
+  const trDates = document.createElement('tr');
+  trDates.innerHTML = '<th>Date</th>' + dates.map(d => `<th>${d}</th>`).join('');
+  thead.appendChild(trDates);
+  table.appendChild(thead);
+
+  students.forEach(s => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${s}</td>` + Deadlines.map(() => '<td></td>').join('');
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+
+  table.querySelectorAll('th,td').forEach(cell => {
+    cell.style.border = '1px solid #ccc';
+    cell.style.padding = '10px';
+    cell.style.textAlign = 'center';
+  });
+  table.querySelectorAll('th:first-child, td:first-child').forEach(cell => {
+    cell.style.textAlign = 'left';
+    cell.style.fontWeight = '600';
+    cell.style.width = '150px';
+  });
+
+  page.appendChild(table);
+  return page;
+}
+
+
+function init() {
+  // ✅ Safely skip if printControls container missing
+  const printControlsHost = document.getElementById('printControls');
+  if (printControlsHost) renderPrintControls();
+
+  rebuildSubjectsFromGrid();
+  renderPages();
+
+  // === LIVE TERM CHECKBOX HANDLERS ===
+['term1','term2','term3','term4'].forEach((id,i)=>{
+  const el = document.getElementById(id);
+  if(el){
+    el.checked = termInclude[i];      // ✅ use your default array values
+    el.addEventListener('change',()=>{
+      termInclude[i] = el.checked;
+      renderPages();
+    });
+  }
+});
+
+
+  // === PRINTING AND EXTRA PAGE INPUTS ===
+  const printBtn = document.getElementById('printBtn');
+  if (printBtn) printBtn.onclick = () => window.print();
+
+  ['blankPages', 'gridPages', 'linedPages'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.oninput = () => renderPages();
+  });
+
+  // === ENABLE DEADLINES CSV UPLOAD HANDLERS ===
+  setupDeadlineFileHandlers();
+}
+
+
+window.onload = function () {
+  init();
+
+  const loadBtn = document.getElementById('loadBtn');
+  const loadFile = document.getElementById('loadFile');
+  const generateBtn = document.getElementById('generatePlannerBtn');
+  const deadlinesFile = document.getElementById('loadDeadlinesFile');
+  const teacherInput = document.getElementById('teacherCode');
+
+  let timetableLoaded = false;
+  let deadlinesLoaded = false;
+  let teacherCode = '';
+
+  // === LOAD TIMETABLE CSV ===
+  if (loadBtn && loadFile) {
+    loadBtn.addEventListener('click', () => {
+      loadFile.value = '';
+      loadFile.click();
+    });
+
+    loadFile.addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+  currentTimetableCSV = ev.target.result;
+  timetableLoaded = true;
+  populateTeacherDropdown(currentTimetableCSV);
+  alert('✅ Timetable CSV loaded. Select staff code from the dropdown.');
+};
+
+      reader.readAsText(file);
+    });
+  }
+
+  // === TEACHER CODE INPUT ===
+  if (teacherInput) {
+    teacherInput.addEventListener('input', () => {
+      teacherCode = teacherInput.value.trim().toUpperCase();
+    });
+  }
+
+  // === DEADLINES FILE HANDLER ===
+  if (deadlinesFile) {
+    deadlinesFile.addEventListener('change', async e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const text = await file.text();
+      const data = Papa.parse(text.trim(), { skipEmptyLines: 'greedy' }).data;
+      insertDeadlinePages(data);
+      deadlinesLoaded = true;
+      alert('✅ Deadlines CSV loaded.');
+    });
+  }
+
+  // === GENERATE PLANNER ===
+  if (generateBtn) {
+    generateBtn.addEventListener('click', () => {
+      if (!timetableLoaded) {
+        alert('⚠️ Please load a timetable CSV first.');
+        return;
+      }
+      if (!teacherCode) {
+        alert('⚠️ Please enter the teacher’s 3-letter code.');
+        return;
+      }
+
+      if (!deadlinesLoaded) {
+        const proceed = confirm('No deadlines CSV loaded. Continue without deadlines?');
+        if (!proceed) return;
+      }
+
+      // ✅ Build timetable grid
+      filterTimetableForTeacher(teacherCode);
+
+      // ✅ Rebuild colors & render planner
+      rebuildSubjectsFromGrid();
+      renderPages();
+
+      alert(`✅ Planner generated for ${teacherCode}${deadlinesLoaded ? ' (with deadlines)' : ' (no deadlines)'}.`);
+    });
+  }
+
+  // === INITIAL BLANK RENDER ===
+  renderPages();
+};
+
+
+
+// === Filters the full timetable grid to just one teacher ===
+function filterTimetableForTeacher(code) {
+  // Keep only the row with matching teacher code in first column
+  const table = Papa.parse(currentTimetableCSV.trim()).data;
+  const headers = table[0];
+  const row = table.find(r => r[0] && r[0].trim().toUpperCase() === code);
+
+  if (!row) {
+    alert(`❌ Could not find a timetable for code ${code}.`);
+    return;
+  }
+
+  // Convert header & row to simplified grid structure
+  gridSub = Array.from({ length: 6 }, () => Array(7).fill(''));
+  dutyTextP2 = Array(7).fill('');
+  dutyTextP4 = Array(7).fill('');
+
+  function parseHeader(h) {
+    if (!h) return null;
+    const m = h.match(/^D(\d)\s*(P\d|I|L)$/i);
+    if (!m) return null;
+    return { day: parseInt(m[1]) - 1, slot: m[2] };
+  }
+
+  for (let i = 1; i < headers.length; i++) {
+    const parsed = parseHeader(headers[i]);
+    if (!parsed) continue;
+    const val = row[i]?.trim() || '';
+    if (!val) continue;
+
+    if (parsed.slot === 'I') dutyTextP2[parsed.day] = val;
+    else if (parsed.slot === 'L') dutyTextP4[parsed.day] = val;
+    else if (parsed.slot.startsWith('P')) {
+      const p = parseInt(parsed.slot.substring(1)) - 1;
+      gridSub[p][parsed.day] = val;
+    }
+  }
+
+  rebuildSubjectsFromGrid();
+}
+
+
+</script>
+</body>
+</html>
