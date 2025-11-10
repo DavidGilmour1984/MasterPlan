@@ -652,7 +652,7 @@ function renderPages() {
   cover.className = 'page';
   cover.innerHTML = `
     <div class="cover">
-      <h1>Name__________</h1>
+      <h1><span id="studentDisplayName"></span></h1>
       <h2>St Peter’s Planner 2026</h2>
       <p style="font-size:40px;color:#444;margin-top:8px;">${termListText}</p>
       <img src="Crest.png" alt="Crest">
@@ -1545,6 +1545,7 @@ if (!teacherCode) {
   alert('⚠️ Please select a student name.');
   return;
 }
+document.getElementById("studentDisplayName").textContent = teacherCode;
 
 
       if (!deadlinesLoaded) {
@@ -1555,11 +1556,24 @@ if (!teacherCode) {
       // ✅ Build timetable grid
       filterTimetableForTeacher(teacherCode);
 
-      // ✅ Rebuild colors & render planner
-      rebuildSubjectsFromGrid();
-      renderPages();
+// Rebuild colors and generate planner pages
+rebuildSubjectsFromGrid();
+renderPages();
 
-      alert(`✅ Planner generated for ${teacherCode}${deadlinesLoaded ? ' (with deadlines)' : ' (no deadlines)'}.`);
+// ✅ Now inject student name AFTER pages exist in the DOM
+const nameEl = document.getElementById("studentDisplayName");
+if (nameEl) {
+  // Convert "Lastname, Firstname" → "Firstname Lastname"
+  let parts = teacherCode.split(",");
+  if (parts.length === 2) {
+    teacherCode = parts[1].trim() + " " + parts[0].trim();
+  }
+  nameEl.textContent = teacherCode;
+}
+
+
+alert(`✅ Planner generated for ${teacherCode}${deadlinesLoaded ? ' (with deadlines)' : ' (no deadlines)'}.`);
+
     });
   }
 
