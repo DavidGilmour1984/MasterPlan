@@ -405,6 +405,9 @@ let gridSub=Array.from({length:6},()=>Array(7).fill(''));
 let dutyTextP2 = Array(7).fill('');
 let dutyTextP4 = Array(7).fill('');
 
+let storedDeadlinePages = [];
+
+
 /* Fixed holidays (skip=true, whole day) */
 const FIXED_EVENTS=[
  {include:true,year:11,skip:true,name:'Diploma Day',date:'2026-02-11',periods:[1,1,1,1,1,1]},
@@ -697,6 +700,8 @@ out.appendChild(cover);
       out.appendChild(buildPage(mon, start, T.startDay, T.term, w + 1, false));
     }
   });
+// ===== RESTORE DEADLINE PAGES (so Generate doesn't delete them) =====
+storedDeadlinePages.forEach(pg => out.appendChild(pg));
 
   // ===== EXTRA PAGES =====
   const blankCount = parseInt(document.getElementById('blankPages')?.value || 0);
@@ -1384,7 +1389,9 @@ if (termMatch) {
 
   // Append student pages
   const out = document.getElementById('pages');
-  DeadlinePages.forEach(pg => out.appendChild(pg));
+  storedDeadlinePages = DeadlinePages;  // Save them
+storedDeadlinePages.forEach(pg => out.appendChild(pg));  // Append now
+
 
   alert(`✅ ${DeadlinePages.length} Deadline page(s) added — simplified for period-based tests.`);
 }
