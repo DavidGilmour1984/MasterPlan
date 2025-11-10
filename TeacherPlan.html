@@ -306,6 +306,12 @@ button:hover {
       <div style="display:flex;flex-direction:column;gap:14px;min-width:260px;">
         <button id="loadBtn" style="padding:12px 18px;font-size:18px;">📂 Load Timetable CSV</button>
         <button id="loadDeadlinesBtn" style="padding:12px 18px;font-size:18px;">🎯 Load Deadlines (optional)</button>
+        <a href="https://docs.google.com/spreadsheets/d/1GER9NAsMzJlg3sJFk5mkyJYpulktLufw_aOEZ2kJEwE/edit?gid=2088320660#gid=2088320660"
+   target="_blank"
+   style="display:block;text-align:center;font-size:16px;margin-top:6px;color:#2563eb;text-decoration:none;font-weight:500;">
+   Deadline Template
+</a>
+
         <button id="printBtn" style="padding:12px 18px;font-size:18px;">🖨️ Save PDF</button>
 
         <div style="margin-top:12px;">
@@ -1530,7 +1536,6 @@ if (teacherInput) {
       const data = Papa.parse(text.trim(), { skipEmptyLines: 'greedy' }).data;
       insertDeadlinePages(data);
       deadlinesLoaded = true;
-      alert('✅ Deadlines CSV loaded.');
     });
   }
 
@@ -1543,15 +1548,10 @@ if (teacherInput) {
       }
 teacherCode = teacherInput.value.trim().toUpperCase();
 if (!teacherCode) {
-  alert('⚠️ Please select a staff code.');
   return;
 }
 
 
-      if (!deadlinesLoaded) {
-        const proceed = confirm('No deadlines CSV loaded. Continue without deadlines?');
-        if (!proceed) return;
-      }
 
       // ✅ Build timetable grid
       filterTimetableForTeacher(teacherCode);
@@ -1565,7 +1565,6 @@ if (coverName) {
   coverName.textContent = teacherCode;
 }
 
-      alert(`✅ Planner generated for ${teacherCode}${deadlinesLoaded ? ' (with deadlines)' : ' (no deadlines)'}.`);
     });
   }
 
