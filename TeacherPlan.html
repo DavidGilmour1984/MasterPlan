@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>STP Planner 2026</title>
+<title>STP Teacher Planner 2026</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <style>
@@ -969,38 +969,43 @@ function buildPage(monday, termStart, startDay, termNumber, weekNumber, isFirst)
       const rot = computeRotationDay(date, termStart, startDay);
       let cellText = [];
 
-      Object.keys(classdeadlines).forEach(cls => {
-        classdeadlines[cls].forEach(d => {
-          if (!sameDate(date, d.date)) return;
+      /* ===== NEW MEETING FILTERING ===== */
 
-          const base = baseSubject(cls);
-          const noClass = !base || base.toLowerCase() === 'none';
+Object.keys(classdeadlines).forEach(cls => {
 
-          // global / non-class entry
-          if (noClass) {
-            if (d.Deadline?.trim()) cellText.push(d.Deadline.trim());
-            return;
-          }
+  // Extract subjects listed in the Class: field → ["PHY","BIO","CHE"]
+  const csvSubjects = cls
+    .replace(/Class:/i, "")
+    .replace(/[.\s]+/g, " ")
+    .trim()
+    .split(" ")
+    .filter(Boolean);
 
-          let hasClassToday = false;
-          for (let p = 0; p < 6; p++) {
-            const s = gridSub[p][rot - 1];
-            if (baseSubject(s) === base && !isSkipped(date, s)) {
-              hasClassToday = true;
-              break;
-            }
-          }
+  // Subjects the teacher actually teaches (from timetable grid)
+  const teacherSubjects = Object.keys(subjects);   // e.g. ["PHY","9SCI","11PHY"]
 
-if (!hasClassToday) {
-  // If the deadline name looks like a meeting, show only the meeting title
-  if (/meeting/i.test(d.Deadline)) {
-    cellText.push(d.Deadline.trim());
-  } else {
+  // Only allow if teacher teaches one of the CSV subjects
+  const allowed = csvSubjects.some(sub =>
+    teacherSubjects.some(t => t.includes(sub))
+  );
+
+  if (!allowed) return;  // 🚫 do not show meeting
+
+  classdeadlines[cls].forEach(d => {
+    if (!sameDate(date, d.date)) return;
+
+    // ✅ Meetings always go to bottom NOTES cell, no prefix, no "Due:"
+    if (/meeting/i.test(d.Deadline)) {
+      cellText.push(d.Deadline.trim());
+      return;
+    }
+
+    // ✅ Non-meeting deadlines behave normally (show class prefix)
+    const base = baseSubject(cls);
     cellText.push(`${base}: ${d.Deadline.trim()}`);
-  }
-}
-        });
-      });
+  });
+});
+
 
 if (cellText.length) {
   const unique = [...new Set(cellText)];
