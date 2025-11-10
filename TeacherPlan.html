@@ -648,17 +648,19 @@ function renderPages() {
         ? 'Term ' + includedTerms[0]
         : 'No Terms Selected';
 
-  // ===== COVER PAGE =====
-  const cover = document.createElement('div');
-  cover.className = 'page';
-  cover.innerHTML = `
-    <div class="cover">
-      <h1>Name__________</h1>
-      <h2>St Peter’s Planner 2026</h2>
-      <p style="font-size:40px;color:#444;margin-top:8px;">${termListText}</p>
-      <img src="Crest.png" alt="Crest">
-    </div>`;
-  out.appendChild(cover);
+
+// ===== COVER PAGE =====
+const cover = document.createElement('div');
+cover.className = 'page';
+cover.innerHTML = `
+  <div class="cover">
+<h1 id="coverTeacherCode" style="text-transform:uppercase;"></h1>
+    <h2>St Peter’s Planner 2026</h2>
+    <p style="font-size:40px;color:#444;margin-top:8px;">${termListText}</p>
+    <img src="Crest.png" alt="Crest">
+  </div>`;
+out.appendChild(cover);
+
 
   // ===== TIMETABLE PAGE =====
   const timg = document.createElement('div');
@@ -1512,11 +1514,11 @@ window.onload = function () {
     });
   }
 
-  // === TEACHER CODE INPUT ===
-  if (teacherInput) {
-    teacherInput.addEventListener('input', () => {
-      teacherCode = teacherInput.value.trim().toUpperCase();
-    });
+// === TEACHER CODE SELECT HANDLER ===
+if (teacherInput) {
+  teacherInput.addEventListener('change', () => {
+    teacherCode = teacherInput.value.trim().toUpperCase();
+  });
   }
 
   // === DEADLINES FILE HANDLER ===
@@ -1539,10 +1541,12 @@ window.onload = function () {
         alert('⚠️ Please load a timetable CSV first.');
         return;
       }
-      if (!teacherCode) {
-        alert('⚠️ Please enter the teacher’s 3-letter code.');
-        return;
-      }
+teacherCode = teacherInput.value.trim().toUpperCase();
+if (!teacherCode) {
+  alert('⚠️ Please select a staff code.');
+  return;
+}
+
 
       if (!deadlinesLoaded) {
         const proceed = confirm('No deadlines CSV loaded. Continue without deadlines?');
@@ -1555,6 +1559,11 @@ window.onload = function () {
       // ✅ Rebuild colors & render planner
       rebuildSubjectsFromGrid();
       renderPages();
+      
+const coverName = document.getElementById("coverTeacherCode");
+if (coverName) {
+  coverName.textContent = teacherCode;
+}
 
       alert(`✅ Planner generated for ${teacherCode}${deadlinesLoaded ? ' (with deadlines)' : ' (no deadlines)'}.`);
     });
