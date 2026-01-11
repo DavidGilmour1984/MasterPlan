@@ -410,8 +410,6 @@ let storedDeadlinePages = [];
 
 /* Fixed holidays (skip=true, whole day) */
 const FIXED_EVENTS=[
- {include:true,year:11,skip:true,name:'Diploma Day',date:'2026-02-11',periods:[1,1,1,1,1,1]},
- {include:true,year:9,skip:true,name:'Orientation',date:'2026-02-10',periods:[1,0,0,0,0,0]},
  {include:true,skip:true,name:'',date:'2026-02-02',periods:[1,1,1,1,1,1]},
  {include:true,skip:true,name:'Waitangi Day',date:'2026-02-06',periods:[1,1,1,1,1,1]},
  {include:true,skip:true,name:'Athletics Day',date:'2026-02-25',periods:[1,1,1,1,1,1]},
@@ -427,44 +425,44 @@ const FIXED_EVENTS=[
  {include:true,skip:true,name:'Leave Weekend',date:'2026-08-24',periods:[1,1,1,1,1,1]},
  {include:true,skip:true,name:'Leave Weekend',date:'2026-08-25',periods:[1,1,1,1,1,1]},
  {include:true,skip:true,name:'Labour Day',date:'2026-10-26',periods:[1,1,1,1,1,1]},
- {include:true,skip:true,name:'Ends of Year',date:'2026-12-10',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'End of Year',date:'2026-12-10',periods:[1,1,1,1,1,1]},
  {include:true,skip:true,name:'End of Year',date:'2026-12-11',periods:[1,1,1,1,1,1]},
 ];
 /* ===== FIXED DEADLINES (do not affect periods but appear in weekly checklist) ===== */
 const FIXED_DEADLINES = [
   // Insight cycles — evenly spread
-  { name: "Y7–8 insight due",   date: "2026-02-02" }, // Mon
-  { name: "Y9–10 insight due",  date: "2026-02-11" }, // Wed
-  { name: "Y11–13 insight due", date: "2026-02-13" }, // Fri
+ // { name: "Y7–8 insight due",   date: "2026-02-02" }, // Mon
+//  { name: "Y9–10 insight due",  date: "2026-02-11" }, // Wed
+//  { name: "Y11–13 insight due", date: "2026-02-13" }, // Fri
 
-  { name: "Y7–8 insight chk",   date: "2026-03-02" }, // Mon
-  { name: "Y9–10 insight chk",  date: "2026-03-05" }, // Thu
-  { name: "Y11–13 insight chk", date: "2026-03-12" }, // Thu
+//  { name: "Y7–8 insight chk",   date: "2026-03-02" }, // Mon
+  //{ name: "Y9–10 insight chk",  date: "2026-03-05" }, // Thu
+  //{ name: "Y11–13 insight chk", date: "2026-03-12" }, // Thu
 
   // Comment banks & interviews
-  { name: "Comment banks prep", date: "2026-02-18" }, // Wed
-  { name: "Interview prep open",date: "2026-03-03" }, // Tue
-  { name: "Parent interviews",  date: "2026-03-06" }, // Fri
-  { name: "Interview break",    date: "2026-03-10" }, // Tue
+  //{ name: "Comment banks prep", date: "2026-02-18" }, // Wed
+ // { name: "Interview prep open",date: "2026-03-03" }, // Tue
+ // { name: "Parent interviews",  date: "2026-03-06" }, // Fri
+  //{ name: "Interview break",    date: "2026-03-10" }, // Tue
 
   // Languages / culture
-  { name: "Te Reo week",        date: "2026-03-11" }, // Wed
-  { name: "Pacific lang week",  date: "2026-03-17" }, // Tue
-  { name: "Chinese lang week",     date: "2026-03-26" }, // Thu
+ // { name: "Te Reo week",        date: "2026-03-11" }, // Wed
+ // { name: "Pacific lang week",  date: "2026-03-17" }, // Tue
+//  { name: "Chinese lang week",     date: "2026-03-26" }, // Thu
 
   // Non-uniform / pastoral
-  { name: "Non-uniform day",    date: "2026-02-05" }, // Thu
-  { name: "Non-uniform day",    date: "2026-03-20" }, // Fri
+ // { name: "Non-uniform day",    date: "2026-02-05" }, // Thu
+ // { name: "Non-uniform day",    date: "2026-03-20" }, // Fri
 
   // Exchanges — evenly distributed
-  { name: "Dio exchange",       date: "2026-03-04" }, // Wed
-  { name: "St Paul’s exch",     date: "2026-03-06" }, // Fri 
-  { name: "Kings exch",         date: "2026-02-13" }, // Fri
-  { name: "Epsom exch",         date: "2026-03-18" }, // Wed
-  { name: "Grammar exch",       date: "2026-02-10" }, // Tue
+ // { name: "Dio exchange",       date: "2026-03-04" }, // Wed
+ // { name: "St Paul’s exch",     date: "2026-03-06" }, // Fri 
+ // { name: "Kings exch",         date: "2026-02-13" }, // Fri
+//  { name: "Epsom exch",         date: "2026-03-18" }, // Wed
+ // { name: "Grammar exch",       date: "2026-02-10" }, // Tue
 
   // Major co-curricular
-  { name: "Summer tourn week",  date: "2026-03-24" }  // Tue
+ // { name: "Summer tourn week",  date: "2026-03-24" }  // Tue
 ];
 
 /* Custom events loaded from CSV (skip=false) */
@@ -878,10 +876,10 @@ termConfig.forEach(T => {
         .filter(Boolean);
 
       const periodsText = activePeriods.length === 6
-        ? 'All day'
+        ? ''
         : 'P' + activePeriods.join(',');
 
-      const yearText = ev.year ? `Y${ev.year}` : 'All';
+      const yearText = ev.year ? `Y${ev.year}` : '';
 
       html += `<li>${dateStr} — ${ev.name || 'Holiday'} — ${yearText} ${periodsText}</li>`;
     });
@@ -1485,7 +1483,13 @@ function init() {
 
   // === PRINTING AND EXTRA PAGE INPUTS ===
   const printBtn = document.getElementById('printBtn');
-  if (printBtn) printBtn.onclick = () => window.print();
+if (printBtn) {
+  printBtn.onclick = () => {
+    const filename = buildPlannerFilename();
+    document.title = filename.replace('.pdf', '');
+    window.print();
+  };
+}
 
   ['blankPages', 'gridPages', 'linedPages'].forEach(id => {
     const el = document.getElementById(id);
@@ -1574,9 +1578,8 @@ if (!teacherCode) {
       
 const coverName = document.getElementById("coverTeacherCode");
 if (coverName) {
-  coverName.textContent = teacherCode;
+  coverName.textContent = selectedTeacherName || teacherCode;
 }
-
     });
   }
 
@@ -1584,13 +1587,56 @@ if (coverName) {
   renderPages();
 };
 
+let selectedTeacherName = "";
+function formatTeacherName(name) {
+  if (!name) return '';
 
+  // Expect format: "Surname, Title Firstname"
+  // Example: "Ryan, Mr Andrew"
+  const parts = name.split(',');
 
-// === Filters the full timetable grid to just one teacher ===
+  if (parts.length !== 2) return name.trim();
+
+  const surname = parts[0].trim();
+  const right = parts[1].trim(); // "Mr Andrew"
+
+  const rightParts = right.split(/\s+/);
+  if (rightParts.length < 2) return name.trim();
+
+  const title = rightParts[0];        // Mr
+  const firstName = rightParts[1];    // Andrew
+  const initial = firstName.charAt(0).toUpperCase();
+
+  return `${title} ${initial} ${surname}`;
+}
+
+function buildPlannerFilename() {
+  const name = (selectedTeacherName || 'Teacher').replace(/\s+/g, '_');
+
+  const includedTerms = termConfig
+    .map((t, i) => termInclude[i] ? t.term : null)
+    .filter(Boolean);
+
+  let termPart = '';
+
+  if (includedTerms.length === 4) {
+    termPart = 'Terms_1_2_3_4';
+  } else if (includedTerms.length === 1) {
+    termPart = `Term_${includedTerms[0]}`;
+  } else if (includedTerms.length > 1) {
+    termPart = 'Terms_' + includedTerms.join('_');
+  } else {
+    termPart = 'No_Terms';
+  }
+
+  return `${name}_${termPart}_Planner_2026.pdf`;
+}
+
 function filterTimetableForTeacher(code) {
-  // Keep only the row with matching teacher code in first column
   const table = Papa.parse(currentTimetableCSV.trim()).data;
   const headers = table[0];
+
+  // Match by teacher code (column A)
   const row = table.find(r => r[0] && r[0].trim().toUpperCase() === code);
 
   if (!row) {
@@ -1598,7 +1644,11 @@ function filterTimetableForTeacher(code) {
     return;
   }
 
-  // Convert header & row to simplified grid structure
+  // Column B = Teacher Name → format to "Mr A Ryan"
+  const rawName = row[1]?.trim() || code;
+  selectedTeacherName = formatTeacherName(rawName);
+
+  // Reset grids
   gridSub = Array.from({ length: 6 }, () => Array(7).fill(''));
   dutyTextP2 = Array(7).fill('');
   dutyTextP4 = Array(7).fill('');
@@ -1610,9 +1660,11 @@ function filterTimetableForTeacher(code) {
     return { day: parseInt(m[1]) - 1, slot: m[2] };
   }
 
-  for (let i = 1; i < headers.length; i++) {
+  // Start at column C (after code + name)
+  for (let i = 2; i < headers.length; i++) {
     const parsed = parseHeader(headers[i]);
     if (!parsed) continue;
+
     const val = row[i]?.trim() || '';
     if (!val) continue;
 
