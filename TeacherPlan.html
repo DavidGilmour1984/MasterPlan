@@ -312,7 +312,8 @@ button:hover {
 </a>
 
         <button id="printBtn" style="padding:12px 18px;font-size:18px;">🖨️ Save PDF</button>
-
+        <button id="emailBtn" style="padding:12px 18px;font-size:18px;background:#0a66c2;">
+  📧 Email via Outlook</button>
         <div style="margin-top:12px;">
           <label for="teacherCode"
        style="font-weight:600;font-size:18px;display:block;margin-bottom:6px;">
@@ -1512,7 +1513,8 @@ window.onload = function () {
   const generateBtn = document.getElementById('generatePlannerBtn');
   const deadlinesFile = document.getElementById('loadDeadlinesFile');
   const teacherInput = document.getElementById('teacherCode');
-
+  const emailBtn = document.getElementById('emailBtn');
+  
   let timetableLoaded = false;
   let deadlinesLoaded = false;
   let teacherCode = '';
@@ -1532,7 +1534,6 @@ window.onload = function () {
   currentTimetableCSV = ev.target.result;
   timetableLoaded = true;
   populateTeacherDropdown(currentTimetableCSV);
-  alert('✅ Timetable CSV loaded. Select staff code from the dropdown.');
 };
 
       reader.readAsText(file);
@@ -1569,7 +1570,73 @@ teacherCode = teacherInput.value.trim().toUpperCase();
 if (!teacherCode) {
   return;
 }
+if (emailBtn) {
+  emailBtn.onclick = () => {
+    const filename = buildPlannerFilename();
+    document.title = filename.replace('.pdf', '');
 
+    // Extract first name from formatted name: "Mr A Ryan" → Andrew
+    let firstName = "there";
+
+    if (selectedTeacherName) {
+      // We stored formatted name like "Mr A Ryan" but we still have raw CSV name earlier
+      // So pull it again from the CSV row
+      const table = Papa.parse(currentTimetableCSV.trim()).data;
+      const row = table.find(r => r[0] && r[0].trim().toUpperCase() === teacherCode);
+      if (row && row[1]) {
+        const rawName = row[1].trim(); // "Ryan, Mr Andrew"
+        const parts = rawName.split(',');
+        if (parts.length === 2) {
+          const right = parts[1].trim(); // "Mr Andrew"
+          const nameParts = right.split(/\s+/);
+          if (nameParts.length >= 2) {
+            firstName = nameParts[1];
+          }
+        }
+      }
+    }
+
+    // Build term list text
+    const includedTerms = termConfig
+      .map((t, i) => termInclude[i] ? t.term : null)
+      .filter(Boolean);
+
+    let termText = '';
+    if (includedTerms.length === 4) {
+      termText = 'Terms 1, 2, 3 and 4';
+    } else if (includedTerms.length === 1) {
+      termText = `Term ${includedTerms[0]}`;
+    } else if (includedTerms.length > 1) {
+      termText = 'Terms ' + includedTerms.slice(0, -1).join(', ') + ' and ' + includedTerms.slice(-1);
+    } else {
+      termText = 'no terms';
+    }
+
+
+    // Trigger PDF save
+    window.print();
+
+const subject = encodeURIComponent(`2026 Teacher Planner — ${termText}`);
+const body = encodeURIComponent(
+  `Hi ${firstName},\n\n` +
+  `Please find attached your 2026 Teacher Planner covering ${termText}.\n\n` +
+
+  `If you would like to attach your class rolls or class photos (downloaded from KAMAR) into your planner PDF, ` +
+  `you can use Adobe's online PDF combiner here:\n` +
+  `Adobe PDF Combiner: https://www.adobe.com/acrobat/online/merge-pdf.html\n\n` +
+
+  `Once combined, you can print or bind as a booklet.\n\n` +
+
+  `If you need any assistance with your planner, come and find me in the Science Block in L2 any lunchtime from 1:00.\n\n` +
+
+  `Regards`
+);
+
+
+window.location.href = `mailto:?subject=${subject}&body=${body}`;
+
+  };
+}
 
 
       // ✅ Build timetable grid
