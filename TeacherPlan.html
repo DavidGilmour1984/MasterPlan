@@ -235,7 +235,6 @@ button:hover {
 .summary-table {
   border-collapse:collapse;
   width:100%;
-  margin-top:20px;
   table-layout:fixed;
 }
 
@@ -243,7 +242,7 @@ button:hover {
   border:1px solid #000;
   padding:1px;
   text-align:center;
-  font-size:10px;
+  font-size:11px;
   word-wrap:break-word;
 }
 
@@ -677,7 +676,7 @@ out.appendChild(cover);
       <div>
         <img src="Timetable.png" alt="Timetable"
           style="width:204mm;max-width:95%;height:auto;margin-top:10mm;">
-        <div style="margin-top:16mm;">${plainTimetableTable()}</div>
+        <div style="margin-top:4mm;">${plainTimetableTable()}</div>
       </div>
     </div>`;
   out.appendChild(timg);
@@ -881,7 +880,11 @@ termConfig.forEach(T => {
 
       const yearText = ev.year ? `Y${ev.year}` : '';
 
-      html += `<li>${dateStr} — ${ev.name || 'Holiday'} — ${yearText} ${periodsText}</li>`;
+      let extra = [yearText, periodsText].filter(x => x && x.trim()).join(' ');
+let suffix = extra ? ' — ' + extra : '';
+
+html += `<li>${dateStr} — ${ev.name || 'Holiday'}${suffix}</li>`;
+
     });
 
     html += '</ul>';
