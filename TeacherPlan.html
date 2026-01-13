@@ -429,41 +429,97 @@ const FIXED_EVENTS=[
  {include:true,skip:true,name:'End of Year',date:'2026-12-11',periods:[1,1,1,1,1,1]},
 ];
 /* ===== FIXED DEADLINES (do not affect periods but appear in weekly checklist) ===== */
+
 const FIXED_DEADLINES = [
-  // Insight cycles — evenly spread
- // { name: "Y7–8 insight due",   date: "2026-02-02" }, // Mon
-//  { name: "Y9–10 insight due",  date: "2026-02-11" }, // Wed
-//  { name: "Y11–13 insight due", date: "2026-02-13" }, // Fri
+// ---------- FEBRUARY ----------
+{ name: "New boarding students arrive", date: "2026-02-02", time: "4:00pm" },
+{ name: "Parent twilight event", date: "2026-02-02", time: "5:00pm" },
+{ name: "School commences", date: "2026-02-03", time: "" },
+{ name: "Powhiri preparation", date: "2026-02-03", time: "8:15am" },
+{ name: "Powhiri – new students, families & staff", date: "2026-02-03", time: "9:00am" },
+{ name: "Assembly", date: "2026-02-03", time: "9:45am" },
+{ name: "House meetings", date: "2026-02-03", time: "10:00am" },
+{ name: "Waitangi Day – no school", date: "2026-02-06", time: "" },
+{ name: "ID Photos", date: "2026-02-09", time: "" },
+{ name: "House Hui", date: "2026-02-10", time: "8:15am" },
+{ name: "House Hui", date: "2026-02-12", time: "8:15am" },
+{ name: "Year 7 Meet the Teacher", date: "2026-02-13", time: "" },
+{ name: "International Students Activity Day", date: "2026-02-19", time: "9:00am" },
+{ name: "Academic & Leadership Assembly", date: "2026-02-23", time: "8:15am" },
+{ name: "Year 12 Ryda Workshop", date: "2026-02-23", time: "9:30am" },
+{ name: "90th Celebration", date: "2026-02-25", time: "" },
+{ name: "Academic Photos", date: "2026-02-26", time: "" },
+{ name: "Non-uniform Day", date: "2026-02-27", time: "" },
 
-//  { name: "Y7–8 insight chk",   date: "2026-03-02" }, // Mon
-  //{ name: "Y9–10 insight chk",  date: "2026-03-05" }, // Thu
-  //{ name: "Y11–13 insight chk", date: "2026-03-12" }, // Thu
+// ---------- MARCH ----------
+{ name: "Year 11 Camp 1 (starts)", date: "2026-03-02", time: "" },
+{ name: "Open Day 1", date: "2026-03-05", time: "" },
+{ name: "Leave Weekend", date: "2026-03-09", time: "" },
+{ name: "Morris House Camp 1 (starts)", date: "2026-03-09", time: "" },
+{ name: "Language & Cultural Week (starts)", date: "2026-03-10", time: "" },
+{ name: "200m Open Swim Champs", date: "2026-03-11", time: "12:40pm" },
+{ name: "Year 13 Spookers Visit", date: "2026-03-13", time: "4:00pm" },
+{ name: "Morris House Camp 2 (starts)", date: "2026-03-23", time: "" },
+{ name: "Easter Service – blazers to be worn", date: "2026-03-30", time: "" },
 
-  // Comment banks & interviews
-  //{ name: "Comment banks prep", date: "2026-02-18" }, // Wed
- // { name: "Interview prep open",date: "2026-03-03" }, // Tue
- // { name: "Parent interviews",  date: "2026-03-06" }, // Fri
-  //{ name: "Interview break",    date: "2026-03-10" }, // Tue
+// ---------- APRIL ----------
+{ name: "Parent Teacher Conferences", date: "2026-04-02", time: "" },
+{ name: "Morris House Camp 3 (starts)", date: "2026-04-20", time: "" },
+{ name: "Teacher Only Day", date: "2026-04-20", time: "" },
+{ name: "ANZAC Service – Formal Uniform", date: "2026-04-21", time: "" },
+{ name: "ANZAC Day Observed", date: "2026-04-27", time: "" },
 
-  // Languages / culture
- // { name: "Te Reo week",        date: "2026-03-11" }, // Wed
- // { name: "Pacific lang week",  date: "2026-03-17" }, // Tue
-//  { name: "Chinese lang week",     date: "2026-03-26" }, // Thu
+// ---------- MAY ----------
+{ name: "Y10 Camp 1 (Girls) – starts", date: "2026-05-04", time: "" },
+{ name: "Year 10 Camp 2 (Boys) – starts", date: "2026-05-11", time: "" },
+{ name: "School Ball", date: "2026-05-14", time: "7:00pm" },
+{ name: "Non-uniform Day – Pink Shirt", date: "2026-05-15", time: "" },
+{ name: "Morris House Camp 4 (starts)", date: "2026-05-18", time: "" },
+{ name: "Blood Drive", date: "2026-05-26", time: "" },
+{ name: "Open Day 2", date: "2026-05-27", time: "" },
+{ name: "Leave Weekend", date: "2026-05-29", time: "" },
 
-  // Non-uniform / pastoral
- // { name: "Non-uniform day",    date: "2026-02-05" }, // Thu
- // { name: "Non-uniform day",    date: "2026-03-20" }, // Fri
+// ---------- JUNE ----------
+{ name: "Leave Weekend", date: "2026-06-01", time: "" },
+{ name: "King’s Birthday", date: "2026-06-01", time: "" },
+{ name: "Morris House Camp 5 (starts)", date: "2026-06-08", time: "" },
+{ name: "Junior House Music / House Haka", date: "2026-06-25", time: "" },
+{ name: "Year 7 & 8 Flag Day", date: "2026-06-26", time: "" },
 
-  // Exchanges — evenly distributed
- // { name: "Dio exchange",       date: "2026-03-04" }, // Wed
- // { name: "St Paul’s exch",     date: "2026-03-06" }, // Fri 
- // { name: "Kings exch",         date: "2026-02-13" }, // Fri
-//  { name: "Epsom exch",         date: "2026-03-18" }, // Wed
- // { name: "Grammar exch",       date: "2026-02-10" }, // Tue
+// ---------- JULY ----------
+{ name: "Cultural Photos", date: "2026-07-28", time: "" },
+{ name: "House Hui", date: "2026-07-28", time: "8:15am" },
+{ name: "House Hui", date: "2026-07-30", time: "8:15am" },
 
-  // Major co-curricular
- // { name: "Summer tourn week",  date: "2026-03-24" }  // Tue
+// ---------- AUGUST ----------
+{ name: "Y12 Leadership Day", date: "2026-08-04", time: "" },
+{ name: "Morris House Camp 6 (starts)", date: "2026-08-10", time: "" },
+{ name: "Open Day", date: "2026-08-19", time: "" },
+{ name: "Parent Teacher Conferences", date: "2026-08-21", time: "" },
+{ name: "Leave Weekend", date: "2026-08-24", time: "" },
+{ name: "Course Selection Event", date: "2026-08-25", time: "3:00pm" },
+
+// ---------- OCTOBER ----------
+{ name: "Labour Day", date: "2026-10-26", time: "" },
+{ name: "IB Exams (start)", date: "2026-10-27", time: "" },
+{ name: "NCEA Y12 & Y13 Tutorials (start)", date: "2026-10-27", time: "" },
+
+// ---------- NOVEMBER ----------
+{ name: "IB Exams (continue)", date: "2026-11-02", time: "" },
+{ name: "NCEA Students on Study Leave (start)", date: "2026-11-02", time: "" },
+{ name: "Year 11 Camp 3 (starts)", date: "2026-11-02", time: "" },
+{ name: "Year 11 Camp 4 (starts)", date: "2026-11-09", time: "" },
+{ name: "NZQA Exams (start)", date: "2026-11-10", time: "" },
+{ name: "Y11 Diploma Week (starts)", date: "2026-11-23", time: "" },
+{ name: "Year 7 Camp (starts)", date: "2026-11-23", time: "" },
+{ name: "Year 8 Experience Week (starts)", date: "2026-11-30", time: "" },
+
+// ---------- DECEMBER ----------
+{ name: "Junior Prizegiving", date: "2026-12-09", time: "" },
+{ name: "Cambodia Service Trip (starts)", date: "2026-12-10", time: "" }
+
 ];
+
 
 /* Custom events loaded from CSV (skip=false) */
 let events=[];
@@ -1054,51 +1110,70 @@ function rowCells(cols, periodIndex, termStart, startDay) {
     div.className = 'slot';
     div.style.position = 'relative';
 
-// ===== WEEKEND P1 CHECKLIST — HARD-CODED DEADLINES (full week range) =====
+// ===== WEEKEND CHECKLIST — EVENTS + DEADLINES FOR THE WEEK (SORTED MON → FRI) =====
 if (!date && periodIndex === 0) {
+
   // Find the Monday on this planner page
   let monday = null;
   for (let i = 0; i < cols.length; i++) {
     const d = cols[i][1];
-    if (d && strip(d).getDay() === 1) { // Monday
+    if (d && strip(d).getDay() === 1) {
       monday = strip(d);
       break;
     }
   }
-
-  // Safety fallback
   if (!monday) monday = strip(cols[0][1]);
 
-  // Define full-week range: previous Saturday → upcoming Friday
   const startRange = strip(addDays(monday, -2)); // Saturday before
-  const endRange = strip(addDays(monday, 4));    // Friday
+  const endRange   = strip(addDays(monday, 4));  // Friday
 
   const checklist = [];
 
-  function dayCode(d) {
-    return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][strip(d).getDay()];
+  function dayName(d) {
+    return d.toLocaleDateString('en-NZ', { weekday: 'short' });
   }
 
-  // ✅ Include any fixed deadline within Sat–Fri range
-  FIXED_DEADLINES.forEach(fd => {
-    const d = strip(new Date(fd.date + "T00:00:00"));
-    if (d.getTime() >= startRange.getTime() && d.getTime() <= endRange.getTime()) {
-      checklist.push(`□ ${fd.name} (${dayCode(d)})`);
-    }
+  // --- School events
+  allEvents().forEach(ev => {
+    if (!ev.include) return;
+
+    const d = strip(new Date(ev.date));
+    if (d < startRange || d > endRange) return;
+
+    checklist.push({
+      date: d,
+      text: `□ ${dayName(d)} — ${ev.name || 'School Event'}`
+    });
   });
+
+  // --- Deadlines
+  FIXED_DEADLINES.forEach(fd => {
+    const d = strip(new Date(fd.date));
+    if (d < startRange || d > endRange) return;
+
+    const timeText = fd.time ? ` (${fd.time})` : '';
+    checklist.push({
+      date: d,
+      text: `□ ${dayName(d)} — ${fd.name}${timeText}`
+    });
+  });
+
+  // ✅ Force weekday order (Mon → Fri)
+  checklist.sort((a, b) => a.date.getDay() - b.date.getDay());
 
   if (checklist.length) {
     div.style.padding = "2mm";
     div.style.fontSize = "11px";
     div.style.color = "#000";
-    div.innerHTML = `<b>Weekly Deadlines and Notices</b><br>` + checklist.join("<br>");
+    div.innerHTML =
+      `<b>Weekly Checklist</b><br>` +
+      checklist.map(x => x.text).join("<br>");
   }
 
   td.appendChild(div);
   tr.appendChild(td);
   return;
 }
-
 
     // ===== REGULAR WEEKDAY CELL HANDLING =====
     if (date) {
