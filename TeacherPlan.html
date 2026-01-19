@@ -53,7 +53,13 @@ h3 {
   border-bottom:2px solid var(--grid);
   padding-bottom:4px;
 }
-
+.checkline {
+  display: block;
+  padding-left: 47px;      /* space for checkbox */
+  text-indent: -47px;     /* pull first line back */
+  line-height: 1.3;
+  margin-bottom: 2px;
+}
 button, input {
   font-family:inherit;
 }
@@ -410,113 +416,441 @@ let storedDeadlinePages = [];
 
 /* Fixed holidays (skip=true, whole day) */
 const FIXED_EVENTS=[
- {include:true,skip:true,name:'',date:'2026-02-02',periods:[1,1,1,1,1,1]},
- {include:true,skip:true,name:'Waitangi Day',date:'2026-02-06',periods:[1,1,1,1,1,1]},
- {include:true,skip:true,name:'Athletics Day',date:'2026-02-25',periods:[1,1,1,1,1,1]},
- {include:true,skip:true,name:'Leave Weekend',date:'2026-03-09',periods:[1,1,1,1,1,1]},
- {include:true,skip:true,name:'Parent Conferences',date:'2026-04-02',periods:[1,1,1,1,1,1]},
- {include:true,skip:true,name:'Good Friday',date:'2026-04-03',periods:[1,1,1,1,1,1]},
- {include:true,skip:true,name:'Teacher Only Day',date:'2026-04-20',periods:[1,1,1,1,1,1]},
- {include:true,skip:true,name:'ANZAC Day',date:'2026-04-27',periods:[1,1,1,1,1,1]},
- {include:true,skip:true,name:'Leave Weekend',date:'2026-05-29',periods:[1,1,1,1,1,1]},
- {include:true,skip:true,name:"King's Birthday",date:'2026-06-01',periods:[1,1,1,1,1,1]},
- {include:true,skip:true,name:'Teacher Only Day',date:'2026-07-20',periods:[1,1,1,1,1,1]},
- {include:true,skip:true,name:'Parent Conferences',date:'2026-08-21',periods:[1,1,1,1,1,1]},
- {include:true,skip:true,name:'Leave Weekend',date:'2026-08-24',periods:[1,1,1,1,1,1]},
- {include:true,skip:true,name:'Leave Weekend',date:'2026-08-25',periods:[1,1,1,1,1,1]},
- {include:true,skip:true,name:'Labour Day',date:'2026-10-26',periods:[1,1,1,1,1,1]},
- {include:true,skip:true,name:'End of Year',date:'2026-12-10',periods:[1,1,1,1,1,1]},
- {include:true,skip:true,name:'End of Year',date:'2026-12-11',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,summary:false,name:'',date:'2026-02-02',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,summary:true,name:'Waitangi Day',date:'2026-02-06',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,summary:false,name:'Athletics Day',date:'2026-02-25',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,summary:true,name:'Leave Weekend',date:'2026-03-09',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,summary:true,name:'Parent Conferences',date:'2026-04-02',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,summary:true,name:'Good Friday',date:'2026-04-03',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,summary:false,name:'Teacher Only Day',date:'2026-04-20',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,summary:true,name:'ANZAC Day',date:'2026-04-27',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,summary:true,name:'Leave Weekend',date:'2026-05-29',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,summary:true,name:"King's Birthday",date:'2026-06-01',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,summary:false,name:'Teacher Only Day',date:'2026-07-20',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,summary:true,name:'Parent Conferences',date:'2026-08-21',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,summary:true,name:'Leave Weekend',date:'2026-08-24',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,summary:true,name:'Leave Weekend',date:'2026-08-25',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,summary:true,name:'Labour Day',date:'2026-10-26',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,summary:false,name:'End of Year',date:'2026-12-10',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,summary:false,name:'End of Year',date:'2026-12-11',periods:[1,1,1,1,1,1]},
 ];
 /* ===== FIXED DEADLINES (do not affect periods but appear in weekly checklist) ===== */
 
 const FIXED_DEADLINES = [
-// ---------- FEBRUARY ----------
-{ name: "New boarding students arrive", date: "2026-02-02", time: "4:00pm" },
-{ name: "Parent twilight event", date: "2026-02-02", time: "5:00pm" },
-{ name: "School commences", date: "2026-02-03", time: "" },
-{ name: "Powhiri preparation", date: "2026-02-03", time: "8:15am" },
-{ name: "Powhiri – new students, families & staff", date: "2026-02-03", time: "9:00am" },
-{ name: "Assembly", date: "2026-02-03", time: "9:45am" },
-{ name: "House meetings", date: "2026-02-03", time: "10:00am" },
-{ name: "Waitangi Day – no school", date: "2026-02-06", time: "" },
-{ name: "ID Photos", date: "2026-02-09", time: "" },
-{ name: "House Hui", date: "2026-02-10", time: "8:15am" },
-{ name: "House Hui", date: "2026-02-12", time: "8:15am" },
-{ name: "Year 7 Meet the Teacher", date: "2026-02-13", time: "" },
-{ name: "International Students Activity Day", date: "2026-02-19", time: "9:00am" },
-{ name: "Academic & Leadership Assembly", date: "2026-02-23", time: "8:15am" },
-{ name: "Year 12 Ryda Workshop", date: "2026-02-23", time: "9:30am" },
-{ name: "90th Celebration", date: "2026-02-25", time: "" },
-{ name: "Academic Photos", date: "2026-02-26", time: "" },
-{ name: "Non-uniform Day", date: "2026-02-27", time: "" },
+// ---------- St Peter's Staff Calendar ----------
+ { name: "New staff induction", date: "2026-01-27", time: "" },
+  { name: "Middle leaders", date: "2026-01-28", time: "" },
+  { name: "All staff only day", date: "2026-01-29", time: "" },
+  { name: "Full Staff Welcome", date: "2026-01-30", time: "3:00pm" },
+  { name: "Faculty meeting", date: "2026-02-09", time: "3:30pm" },
+  { name: "Staff Meeting", date: "2026-02-13", time: "8:00am" },
+  { name: "HoF Meeting", date: "2026-02-16", time: "3:30pm" },
+  { name: "Pastoral Meeting", date: "2026-02-16", time: "3:30pm" },
+  { name: "Faculty Meeting", date: "2026-02-20", time: "8:15am" },
+  { name: "IB Meeting", date: "2026-02-23", time: "3:30pm" },
+  { name: "Staff Workshops", date: "2026-02-27", time: "8:15am" },
+  { name: "IB Meeting", date: "2026-03-23", time: "3:30pm" },
+{ name: "Staff Workshops", date: "2026-03-27", time: "8:15am" },
+{ name: "HoF Meeting", date: "2026-03-30", time: "3:30pm" },
+{ name: "Pastoral Meeting", date: "2026-03-30", time: "3:30pm" },
+{ name: "Staff Meeting", date: "2026-04-24", time: "8:15am" },
+{ name: "Faculty Meeting", date: "2026-05-01", time: "8:15am" },
+{ name: "Pastoral Meeting", date: "2026-05-04", time: "3:30pm" },
+{ name: "Staff Meeting", date: "2026-05-08", time: "8:15am" },
+{ name: "IB Meeting", date: "2026-05-11", time: "3:30pm" },
+{ name: "Faculty Meeting", date: "2026-05-15", time: "8:15am" },
+{ name: "Faculty Meeting", date: "2026-05-18", time: "3:30pm" },
+{ name: "Staff Workshops", date: "2026-05-22", time: "8:15am" },
+{ name: "HoF Meeting", date: "2026-05-25", time: "3:30pm" },
+{ name: "Pastoral Meeting", date: "2026-05-25", time: "3:30pm" },
+{ name: "Whole Staff Meet", date: "2026-06-05", time: "8:15am" },
+{ name: "Faculty Meeting", date: "2026-06-08", time: "3:30pm" },
+{ name: "IB Meeting", date: "2026-06-12", time: "8:15am" },
+{ name: "SPPA Staff Morning", date: "2026-06-15", time: "10:00am" },
+{ name: "HoF Meeting", date: "2026-06-15", time: "3:30pm" },
+{ name: "Pastoral Meeting", date: "2026-06-15", time: "3:30pm" },
+{ name: "Staff Meeting", date: "2026-06-19", time: "8:15am" },
+{ name: "Faculty Meeting", date: "2026-06-22", time: "8:15am" },
+{ name: "Faculty Meeting", date: "2026-06-26", time: "8:15am" },
+{ name: "Faculty Meeting", date: "2026-07-24", time: "8:15am" },
+{ name: "Faculty Meeting", date: "2026-07-27", time: "3:30pm" },
+{ name: "Staff Meeting", date: "2026-07-31", time: "8:15am" },
+{ name: "Faculty Meeting", date: "2026-08-03", time: "3:30pm" },
+{ name: "HoF Meeting", date: "2026-08-03", time: "3:30pm" },
+{ name: "Pastoral Meeting", date: "2026-08-03", time: "3:30pm" },
+{ name: "Staff Meeting", date: "2026-08-07", time: "8:15am" },
+{ name: "Faculty Meeting", date: "2026-08-10", time: "3:30pm" },
+{ name: "IB Meeting", date: "2026-08-14", time: "8:15am" },
+{ name: "Faculty Meeting", date: "2026-08-17", time: "3:30pm" },
+{ name: "Staff Meeting", date: "2026-08-21", time: "8:15am" },
+{ name: "Faculty Meeting", date: "2026-08-28", time: "8:15am" },
+{ name: "HoF Meeting", date: "2026-08-31", time: "3:30pm" },
+{ name: "Pastoral Meeting", date: "2026-08-31", time: "3:30pm" },
+{ name: "Whole Staff Meet", date: "2026-09-04", time: "8:15am" },
+{ name: "Faculty Meeting", date: "2026-09-07", time: "3:30pm" },
+{ name: "Faculty Meeting", date: "2026-09-11", time: "8:15am" },
+{ name: "Faculty Meeting", date: "2026-09-14", time: "3:30pm" },
+{ name: "Faculty Meeting", date: "2026-09-18", time: "8:15am" },
+{ name: "HoF Meeting", date: "2026-09-21", time: "3:30pm" },
+{ name: "Pastoral Meeting", date: "2026-09-21", time: "3:30pm" },
+{ name: "Faculty Meeting", date: "2026-09-25", time: "8:15am" },
+{ name: "Faculty Meeting", date: "2026-10-12", time: "3:30pm" },
+{ name: "STP Room Open Day", date: "2026-10-16", time: "" },
+{ name: "Staff Meeting", date: "2026-10-16", time: "8:15am" },
+{ name: "Faculty Meeting", date: "2026-10-23", time: "8:15am" },
+{ name: "HoF Meeting", date: "2026-10-26", time: "3:30pm" },
+{ name: "Pastoral Meeting", date: "2026-10-26", time: "3:30pm" },
+{ name: "Faculty Meeting", date: "2026-10-30", time: "8:15am" },
+{ name: "Faculty Meeting", date: "2026-11-02", time: "3:30pm" },
+{ name: "Staff Workshops", date: "2026-11-06", time: "8:15am" },
+{ name: "HoF Meeting", date: "2026-11-09", time: "3:30pm" },
+{ name: "Pastoral Meeting", date: "2026-11-09", time: "3:30pm" },
+{ name: "Faculty Meeting", date: "2026-11-13", time: "3:30pm" },
+{ name: "Faculty Meeting", date: "2026-11-16", time: "3:30pm" },
+{ name: "IB Meeting", date: "2026-11-20", time: "8:15am" },
+{ name: "Faculty Meeting", date: "2026-11-23", time: "3:30pm" },
+{ name: "Whole Staff Meet", date: "2026-11-27", time: "8:15am" },
+{ name: "HoF Meeting", date: "2026-11-30", time: "3:30pm" },
+{ name: "Pastoral Meeting", date: "2026-11-30", time: "3:30pm" },
+{ name: "Faculty Meeting", date: "2026-12-04", time: "8:15am" },
+{ name: "Faculty Meeting", date: "2026-12-07", time: "3:30pm" },
+{ name: "Staff Farewells / Lunch", date: "2026-12-09", time: "" },
+{ name: "Staff Christmas Function", date: "2026-12-10", time: "" },
+{ name: "Staff Only – Morning", date: "2026-12-10", time: "" },
 
-// ---------- MARCH ----------
-{ name: "Year 11 Camp 1 (starts)", date: "2026-03-02", time: "" },
-{ name: "Open Day 1", date: "2026-03-05", time: "" },
-{ name: "Leave Weekend", date: "2026-03-09", time: "" },
-{ name: "Morris House Camp 1 (starts)", date: "2026-03-09", time: "" },
-{ name: "Language & Cultural Week (starts)", date: "2026-03-10", time: "" },
-{ name: "200m Open Swim Champs", date: "2026-03-11", time: "12:40pm" },
-{ name: "Year 13 Spookers Visit", date: "2026-03-13", time: "4:00pm" },
-{ name: "Morris House Camp 2 (starts)", date: "2026-03-23", time: "" },
-{ name: "Easter Service – blazers to be worn", date: "2026-03-30", time: "" },
+// ---------- St Peter's Core Activities Calendar ----------
+{name:"All boarding students arrive at houses",date:"2026-02-02",time:"4:00pm"},
+{name:"Parent twilight event",date:"2026-02-02",time:"5:00pm"},
+{name:"Poowhiri preparation",date:"2026-02-03",time:"8:15am"},
+{name:"Poowhiri for all new students, families and staff",date:"2026-02-03",time:"9:00am"},
+{name:"Assembly",date:"2026-02-03",time:"9:45am"},
+{name:"House meetings",date:"2026-02-03",time:"10:00am"},
+{name:"Morning tea",date:"2026-02-03",time:"10:30am"},
+{name:"Homeroom / Mentor",date:"2026-02-03",time:"11:00am"},
+{name:"12IB Orientation",date:"2026-02-03",time:"11:50am"},
+{name:"ID Photos",date:"2026-02-09",time:""},
+{name:"SPPA Meeting",date:"2026-02-09",time:"6:00pm"},
+{name:"House Hui",date:"2026-02-10",time:"8:15am"},
+{name:"Boarding Prefects Child Protection Training",date:"2026-02-10",time:"10:00am"},
+{name:"House Hui",date:"2026-02-12",time:"8:15am"},
+{name:"Year 7 Meet the Teacher",date:"2026-02-13",time:""},
+{name:"International Students Activity Day",date:"2026-02-16",time:"9:00am"},
+{name:"Prefect Training",date:"2026-02-17",time:"8:00am"},
+{name:"Y12 Parent Meet and Greet",date:"2026-02-18",time:"3:30pm"},
+{name:"Parent Morning Tea",date:"2026-02-19",time:"8:15am"},
+{name:"Academic and Leadership Assembly",date:"2026-02-23",time:"8:15am"},
+{name:"Year 12 Ryda Workshop",date:"2026-02-23",time:"9:30am"},
+{name:"90th Celebration",date:"2026-02-25",time:""},
+{name:"Academic Photos",date:"2026-02-26",time:""},
+{name:"OWL Farm Focus Day",date:"2026-02-26",time:""},
+{name:"University of Canterbury Visit",date:"2026-02-26",time:"12:40pm"},
+{name:"Non-uniform Day",date:"2026-02-27",time:""},
+{name:"Year 11 Camp 1",date:"2026-03-02",time:""},
+{name:"Prefect Training",date:"2026-03-03",time:"8:00am"},
+{name:"University of Auckland Visit",date:"2026-03-04",time:"12:40pm"},
+{name:"Open Day 1",date:"2026-03-05",time:""},
+{name:"AUT University Visit",date:"2026-03-06",time:"12:30pm"},
+{name:"Boarding Parent Afternoon Tea",date:"2026-03-06",time:"2:00pm"},
+{name:"Leave Weekend",date:"2026-03-09",time:""},
+{name:"Morris House Camp 1",date:"2026-03-09",time:""},
+{name:"Language and Cultural Week",date:"2026-03-10",time:""},
+{name:"200m Open Swim Champs",date:"2026-03-11",time:"12:40pm"},
+{name:"University of Waikato Visit",date:"2026-03-11",time:"12:40pm"},
+{name:"Information Evening Auckland",date:"2026-03-12",time:""},
+{name:"Massey University Visit",date:"2026-03-13",time:"12:30pm"},
+{name:"Year 13 Spookers Visit",date:"2026-03-13",time:"4:00pm"},
+{name:"Parent Morning Tea",date:"2026-03-16",time:"8:15am"},
+{name:"Victoria University Wellington Visit",date:"2026-03-17",time:"12:40pm"},
+{name:"Wintec Visit",date:"2026-03-19",time:"12:40pm"},
+{name:"Morris House Camp 2",date:"2026-03-23",time:""},
+{name:"Easter Service - blazers to be worn",date:"2026-03-30",time:""},
+{name:"SPPA AGM",date:"2026-03-30",time:"6:00pm"},
+{name:"Trustboard Meeting",date:"2026-03-31",time:"7:00pm"},
+{name:"Parent Teacher Conferences",date:"2026-04-02",time:""},
+{name:"Morris House Camp 3",date:"2026-04-20",time:""},
+{name:"Teacher Only Day",date:"2026-04-20",time:""},
+{name:"Anzac Service - Formal Uniform",date:"2026-04-21",time:""},
+{name:"Anzac Day Observed",date:"2026-04-27",time:""},
+{name:"House Hui",date:"2026-04-28",time:"8:15am"},
+{name:"OWL Farm Focus Day",date:"2026-04-29",time:""},
+{name:"Otago University Information Session",date:"2026-04-29",time:"12:40pm"},
+{name:"House Hui",date:"2026-04-30",time:"8:15am"},
+{name:"Alumni Event - TBC",date:"2026-05-01",time:""},
+{name:"Y10 Camp 1 Girls",date:"2026-05-04",time:""},
+{name:"SPPA",date:"2026-05-04",time:"6:00pm"},
+{name:"Information Evening Taupo",date:"2026-05-07",time:""},
+{name:"Year 10 Camp 2 Boys",date:"2026-05-11",time:""},
+{name:"Prefect Training",date:"2026-05-12",time:"8:00am"},
+{name:"Parent Morning Tea",date:"2026-05-13",time:"8:15am"},
+{name:"School Ball",date:"2026-05-14",time:"7:00pm"},
+{name:"Non-uniform Day Pink Shirt",date:"2026-05-15",time:""},
+{name:"Year 13 Breakfast",date:"2026-05-15",time:"8:00am"},
+{name:"Morris House Camp 4",date:"2026-05-18",time:""},
+{name:"University of Waikato Second Visit",date:"2026-05-20",time:"12:40pm"},
+{name:"Blood Drive",date:"2026-05-26",time:""},
+{name:"Open Day 2",date:"2026-05-27",time:""},
+{name:"Boarding Afternoon Tea",date:"2026-05-28",time:"2:30pm"},
+{name:"Leave Weekend",date:"2026-05-29",time:""},
+{name:"Leave Weekend",date:"2026-06-01",time:""},
+{name:"King's Birthday",date:"2026-06-01",time:""},
+{name:"SPPA",date:"2026-06-02",time:"6:00pm"},
+{name:"Foundation",date:"2026-06-04",time:""},
+{name:"Prefect Training",date:"2026-06-04",time:"8:00am"},
+{name:"Morris House Camp 5",date:"2026-06-08",time:""},
+{name:"Information Evening Tauranga",date:"2026-06-11",time:""},
+{name:"Boarding Mid-winter Christmas",date:"2026-06-15",time:"6:00pm"},
+{name:"Prefect Training",date:"2026-06-16",time:"8:00am"},
+{name:"7 Year Club Dinner",date:"2026-06-18",time:"7:00pm"},
+{name:"Parent Morning Tea",date:"2026-06-23",time:"8:15am"},
+{name:"Junior House Music / House Haka",date:"2026-06-25",time:""},
+{name:"Last Day of Term 2",date:"2026-06-26",time:""},
+{name:"Year 7 and 8 Flag Day",date:"2026-06-26",time:""},
+{name:"Teacher Only Day",date:"2026-07-20",time:""},
+{name:"SPPA",date:"2026-07-20",time:"6:00pm"},
+{name:"Alumni",date:"2026-07-27",time:""},
+{name:"Cultural Photos",date:"2026-07-28",time:""},
+{name:"Prefect Training",date:"2026-07-28",time:"8:00am"},
+{name:"House Hui",date:"2026-07-28",time:"8:15am"},
+{name:"Parent Morning Tea",date:"2026-07-30",time:"8:15am"},
+{name:"House Hui",date:"2026-07-30",time:"8:15am"},
+{name:"Y12 Leadership Day",date:"2026-08-04",time:""},
+{name:"Foundation",date:"2026-08-06",time:""},
+{name:"Morris House Camp 6",date:"2026-08-10",time:""},
+{name:"University of Waikato Third Visit",date:"2026-08-13",time:"12:40pm"},
+{name:"Parents Afternoon Tea",date:"2026-08-14",time:"2:00pm"},
+{name:"Open Day",date:"2026-08-19",time:""},
+{name:"Prefect Training",date:"2026-08-20",time:"8:00am"},
+{name:"Gumboot Function",date:"2026-08-21",time:""},
+{name:"Parent Teacher Conferences",date:"2026-08-21",time:""},
+{name:"Leave Weekend",date:"2026-08-24",time:""},
+{name:"Course Selection Event",date:"2026-08-25",time:"3:00pm"},
+{name:"Parent Morning Tea",date:"2026-09-14",time:"8:15am"},
+{name:"Boarding's Got Talent",date:"2026-09-14",time:"7:00pm"},
+{name:"OWL Farm Focus Day",date:"2026-09-17",time:""},
+{name:"Tug of War",date:"2026-09-24",time:"12:30pm"},
+{name:"Prefects Dinner",date:"2026-09-24",time:"6:00pm"},
+{name:"Last Day of Term 3",date:"2026-09-25",time:"4:00am"},
+{name:"Alumni",date:"2026-09-28",time:"12:00am"},
+{name:"SPPA",date:"2026-10-12",time:"6:00pm"},
+{name:"House Hui",date:"2026-10-13",time:"8:15am"},
+{name:"Parent Morning Tea",date:"2026-10-15",time:"8:15am"},
+{name:"House Hui",date:"2026-10-15",time:"8:15am"},
+{name:"IB 13 Last Day",date:"2026-10-16",time:""},
+{name:"Broadhurst House Dinner",date:"2026-10-16",time:"6:00pm"},
+{name:"Year 11 Camp 2",date:"2026-10-19",time:""},
+{name:"Graduates Dinner",date:"2026-10-22",time:""},
+{name:"Senior Prizegiving and Graduation",date:"2026-10-23",time:""},
+{name:"Labour Day",date:"2026-10-26",time:""},
+{name:"IB Exams",date:"2026-10-27",time:""},
+{name:"NCEA Y12 and Y13 Tutorials",date:"2026-10-27",time:""},
+{name:"NCEA Students on Study Leave",date:"2026-10-30",time:"3:20pm"},
+{name:"IB Exams",date:"2026-11-02",time:""},
+{name:"Year 11 Camp 3",date:"2026-11-02",time:""},
+{name:"NCEA students on study leave",date:"2026-11-02",time:""},
+{name:"Foundation",date:"2026-11-05",time:""},
+{name:"IB Exams",date:"2026-11-09",time:""},
+{name:"Year 11 Camp 4",date:"2026-11-09",time:""},
+{name:"NZQA Exams",date:"2026-11-10",time:""},
+{name:"OWL Farm Focus Day",date:"2026-11-10",time:""},
+{name:"NZQA Exams",date:"2026-11-16",time:""},
+{name:"NZQA Exams",date:"2026-11-23",time:""},
+{name:"Y11 Diploma Week",date:"2026-11-23",time:""},
+{name:"Year 7 Camp",date:"2026-11-23",time:""},
+{name:"NZQA Exams",date:"2026-11-30",time:""},
+{name:"Year 8 Experience Week",date:"2026-11-30",time:""},
+{name:"SPPA Final Christmas Meeting",date:"2026-12-04",time:"6:00pm"},
+{name:"Junior Prizegiving",date:"2026-12-09",time:""},
+{name:"2026 Cambodia Service Trip",date:"2026-12-10",time:""},
+{name:"2026 Cambodia Service Trip",date:"2026-12-14",time:""},
+{name:"2026 Cambodia Service Trip",date:"2026-12-21",time:""},
 
-// ---------- APRIL ----------
-{ name: "Parent Teacher Conferences", date: "2026-04-02", time: "" },
-{ name: "Morris House Camp 3 (starts)", date: "2026-04-20", time: "" },
-{ name: "Teacher Only Day", date: "2026-04-20", time: "" },
-{ name: "ANZAC Service – Formal Uniform", date: "2026-04-21", time: "" },
-{ name: "ANZAC Day Observed", date: "2026-04-27", time: "" },
+// ---------- St Peter's Cultural Calendar ----------
+{name:"Production workshop (Thu-Fri)",date:"2026-01-29",time:"10:00am"},
+{name:"Arts & Culture Lunch",date:"2026-02-13",time:"12:10pm"},
+{name:"Arts & Cultural co-curriculum",date:"2026-02-16",time:""},
+{name:"Spirit Week (Mon-Fri)",date:"2026-02-23",time:""},
+{name:"STARS Concert",date:"2026-03-17",time:""},
+{name:"Beauty and the Beast Flash",date:"2026-03-22",time:""},
+{name:"Year 12 & 13 Drama Showcase (Tue-Thu)",date:"2026-03-24",time:""},
+{name:"Cultural Celebrations (Mon-Tue)",date:"2026-03-30",time:""},
+{name:"Production workshop day",date:"2026-04-20",time:""},
+{name:"Production Tech Week (Tue-Fri)",date:"2026-04-21",time:""},
+{name:"Production opening night",date:"2026-04-25",time:""},
+{name:"Production Matinee",date:"2026-04-26",time:""},
+{name:"Production (Tue-Fri)",date:"2026-04-28",time:""},
+{name:"World Vision Conference",date:"2026-05-05",time:""},
+{name:"Rock of Ages",date:"2026-05-20",time:"6:30pm"},
+{name:"Rockquest Regionals",date:"2026-05-23",time:""},
+{name:"Spelling Bee (Tue-Thu)",date:"2026-06-02",time:"12:40pm"},
+{name:"Chamber Music Contest Regionals",date:"2026-06-03",time:""},
+{name:"NDC Dance Competition",date:"2026-06-08",time:""},
+{name:"Year 9 PFA Day",date:"2026-06-09",time:""},
+{name:"Big Sing Regionals",date:"2026-06-11",time:""},
+{name:"National Dance Challenge",date:"2026-06-12",time:""},
+{name:"Senior PFA Curriculum",date:"2026-06-17",time:""},
+{name:"Bevan Cup & Kammermusik",date:"2026-06-22",time:""},
+{name:"Senior House Music",date:"2026-06-23",time:""},
+{name:"House Theatres",date:"2026-06-24",time:"12:40pm"},
+{name:"Mulled Wine Evening",date:"2026-06-24",time:"5:00pm"},
+{name:"Dance Camp (Mon-Tue)",date:"2026-07-27",time:""},
+{name:"Music Gala",date:"2026-07-30",time:"6:30pm"},
+{name:"Dance NZ Made (Sat-Sun)",date:"2026-08-08",time:""},
+{name:"KBB Music Festival",date:"2026-08-11",time:""},
+{name:"ASPIRE Dance Showcase (Wed-Thu)",date:"2026-08-12",time:"6:30pm"},
+{name:"Kapahaka Festival",date:"2026-08-28",time:""},
+{name:"ITM Festival Waikato",date:"2026-08-28",time:"9:00am"},
+{name:"Joso School visit",date:"2026-09-10",time:""},
+{name:"MEFA Music Nationals (Mon-Thu)",date:"2026-09-21",time:""},
+{name:"MTA Showcase (Wed-Thu)",date:"2026-10-14",time:""},
+{name:"Arts Awards",date:"2026-10-20",time:""},
+{name:"Year 11 Drama Showcase (Mon-Tue)",date:"2026-11-02",time:""},
+{name:"Y7-11 Curriculum PFA Day",date:"2026-11-19",time:""},
 
-// ---------- MAY ----------
-{ name: "Y10 Camp 1 (Girls) – starts", date: "2026-05-04", time: "" },
-{ name: "Year 10 Camp 2 (Boys) – starts", date: "2026-05-11", time: "" },
-{ name: "School Ball", date: "2026-05-14", time: "7:00pm" },
-{ name: "Non-uniform Day – Pink Shirt", date: "2026-05-15", time: "" },
-{ name: "Morris House Camp 4 (starts)", date: "2026-05-18", time: "" },
-{ name: "Blood Drive", date: "2026-05-26", time: "" },
-{ name: "Open Day 2", date: "2026-05-27", time: "" },
-{ name: "Leave Weekend", date: "2026-05-29", time: "" },
+// ---------- St Peter's Curriculum Calendar ----------
+{name:"Course Confirmation – afternoon (Wed-Thu)",date:"2026-01-28",time:""},
+{name:"Yr11 History Trip",date:"2026-02-11",time:"8:15am"},
+{name:"130ED Open Water Scuba Diving Course (Tue-Thu)",date:"2026-02-17",time:""},
+{name:"Yr13 History Waikato Wars Trip",date:"2026-02-20",time:"8:15am"},
+{name:"Yr12 History Internal",date:"2026-02-24",time:"8:15am"},
+{name:"12GEO Tongariro Research Trip (Mon-Wed)",date:"2026-03-02",time:""},
+{name:"120ED Whitewater Kayaking 1 (Wed-Fri)",date:"2026-03-04",time:""},
+{name:"Yr8 Social Studies Tourism Trip",date:"2026-03-05",time:""},
+{name:"13GEO Summer Whirinaki Trip",date:"2026-03-06",time:"8:00am"},
+{name:"11HS Waikato War Memorial Sites",date:"2026-03-11",time:""},
+{name:"11GEO Oreti Point Research Trip",date:"2026-03-12",time:""},
+{name:"13BUS Young Enterprise Scheme – Regional Kickstart",date:"2026-03-13",time:"8:15am"},
+{name:"Year 12 Leadership Experience",date:"2026-03-16",time:"8:40am"},
+{name:"Yr9 Social Studies – History of Cambridge",date:"2026-03-17",time:"8:15am"},
+{name:"Year 12 Leadership Experience",date:"2026-03-17",time:"8:40am"},
+{name:"120ED Whitewater Kayaking 2 (Wed-Fri)",date:"2026-03-18",time:""},
+{name:"Japan Education & Culture Tour 2026 (Wed-Fri)",date:"2026-04-01",time:""},
+{name:"2026 European Science Tour (Sat-Sun)",date:"2026-04-03",time:""},
+{name:"Japan Education & Culture Tour 2026 (Wed-Sun)",date:"2026-04-01",time:""},
+{name:"2026 European Science Tour (Sat-Sun)",date:"2026-04-04",time:""},
+{name:"2026 European Science Tour (Mon-Sun)",date:"2026-04-06",time:""},
+{name:"13ICH Chemistry IA – Data collection",date:"2026-04-28",time:"8:45am"},
+{name:"09COM – Market Day 1",date:"2026-04-29",time:"11:30am"},
+{name:"13OED Rock climbing",date:"2026-05-01",time:"7:00am"},
+{name:"12TOU and 13TOU and EAL – RC",date:"2026-05-06",time:"8:15am"},
+{name:"12OED Bush Camp 1 (Mon-Wed)",date:"2026-05-11",time:""},
+{name:"LITNUM window (Mon-Fri)",date:"2026-05-18",time:""},
+{name:"12OED Bush Camp 2 (Mon-Wed)",date:"2026-05-18",time:""},
+{name:"12/13 IB Business Management",date:"2026-05-20",time:"8:45am"},
+{name:"Year 10 English monologue workshop",date:"2026-05-26",time:"8:45am"},
+{name:"EE Celebration",date:"2026-05-27",time:""},
+{name:"13BUS – Strategic Responses Task",date:"2026-05-27",time:"8:15am"},
+{name:"13BUS – Young Enterprise Scheme",date:"2026-05-28",time:"8:15am"},
+{name:"12THP and 13THP – Theology",date:"2026-06-02",time:"8:00am"},
+{name:"IB English Individual Oral internal assessment (Wed-Fri)",date:"2026-06-03",time:""},
+{name:"Year 10 Night at the Museum",date:"2026-06-09",time:"1:30pm"},
+{name:"Year 10 Night at the Museum",date:"2026-06-11",time:"1:30pm"},
+{name:"13OED Rock climbing",date:"2026-06-18",time:"7:00am"},
+{name:"IB and 13 NCEA Geography",date:"2026-08-03",time:"8:00am"},
+{name:"National Youth Art Awards Exhibition",date:"2026-08-04",time:"5:30pm"},
+{name:"12OED – Mountain Bike 1 (Tue-Thu)",date:"2026-08-11",time:""},
+{name:"12OED – Mountain Bike 2 (Thu-Fri)",date:"2026-08-13",time:""},
+{name:"12OED – Mountain Biking Redwoods Forest (Tue-Fri)",date:"2026-08-11",time:""},
+{name:"Yr13 IB Visual Art examination",date:"2026-08-13",time:"8:45am"},
+{name:"12 IB Whiriato Winter Trip",date:"2026-08-14",time:"8:00am"},
+{name:"Year 13 IB Visual Art exhibition",date:"2026-08-14",time:"3:30pm"},
+{name:"Level 3 English 91476 Seminar internal assessment (Tue-Thu)",date:"2026-08-18",time:""},
+{name:"Y10–13 Drama students – Macbeth",date:"2026-08-18",time:"8:30am"},
+{name:"11BUS – Market Day",date:"2026-08-19",time:"11:45am"},
+{name:"LITNUM window (Mon-Fri)",date:"2026-09-07",time:""},
+{name:"CAAs",date:"2026-09-08",time:""},
+{name:"Senior Exams – Y11–13 (Wed-Fri)",date:"2026-09-09",time:""},
+{name:"Senior Exams – Y11–13 (Mon-Fri)",date:"2026-09-14",time:""},
+{name:"EE Day 2",date:"2026-09-21",time:""},
+{name:"13OED Leadership Camp (Wed-Fri)",date:"2026-10-14",time:""},
+{name:"13BUS – Young Enterprise Scheme",date:"2026-10-17",time:"1:15pm"},
+{name:"09COM – Market Day 2",date:"2026-10-21",time:"11:30am"},
+{name:"Year 7 Assessment Day",date:"2026-11-11",time:""},
+{name:"Year 9 Assessment Day",date:"2026-11-13",time:""},
+{name:"Year 12 IB Pirongia Field Trip",date:"2026-11-18",time:"10:30am"},
+{name:"Yr9 RE Pilgrimage",date:"2026-11-19",time:"8:00am"},
 
-// ---------- JUNE ----------
-{ name: "Leave Weekend", date: "2026-06-01", time: "" },
-{ name: "King’s Birthday", date: "2026-06-01", time: "" },
-{ name: "Morris House Camp 5 (starts)", date: "2026-06-08", time: "" },
-{ name: "Junior House Music / House Haka", date: "2026-06-25", time: "" },
-{ name: "Year 7 & 8 Flag Day", date: "2026-06-26", time: "" },
+// ---------- St Peter's Sports Calendar ----------
+{name:"Cricket – 1st XI Boys Cricket Exchange v Whanganui Collegiate School",date:"2026-02-07",time:""},
+{name:"Rowing – Junior Regatta",date:"2026-02-14",time:""},
+{name:"Cricket – 1st XI, 2nd XI & Colts",date:"2026-02-15",time:"10:30am"},
+{name:"Cricket – 1st XI, 2nd XI & Colts",date:"2026-02-16",time:"8:30am"},
+{name:"Athletics Day",date:"2026-02-25",time:""},
+{name:"6am 440 Enduro MTB",date:"2026-03-01",time:"6:00am"},
+{name:"Athletics Zonal Championships / Zone Athletics",date:"2026-03-03",time:""},
+{name:"Rowing – NISS Regatta (Fri-Sun)",date:"2026-03-06",time:""},
+{name:"Winter Sports Muster",date:"2026-03-09",time:"1:00pm"},
+{name:"Rowing – Whakamaru Camp (Fri-Sun)",date:"2026-03-13",time:""},
+{name:"Rural Schools Swimming",date:"2026-03-13",time:""},
+{name:"Waikato BOP Secondary Schools Triathlon",date:"2026-03-17",time:""},
+{name:"Athletics Waikato Bay of Plenty Secondary / WBOPSS Athletics",date:"2026-03-18",time:""},
+{name:"Cambridge Interschool Swimming",date:"2026-03-19",time:""},
+{name:"Swimming Sports",date:"2026-03-20",time:""},
+{name:"Rowing – Maadi Regatta / Summer Tournament Week (Sat-Sun)",date:"2026-03-21",time:""},
+{name:"Rowing – Maadi Regatta / Summer Tournament Week (Mon-Fri)",date:"2026-03-23",time:""},
+{name:"WFPSA Swimming",date:"2026-03-27",time:""},
+{name:"NISS Athletics",date:"2026-03-28",time:""},
+{name:"Athletics and Academic Pathway Tour (Thu-Sun)",date:"2026-04-02",time:""},
+{name:"Athletics and Academic Pathway Tour (Mon-Fri)",date:"2026-04-06",time:""},
+{name:"Athletics and Academic Pathway Tour (Mon-Fri)",date:"2026-04-13",time:""},
+{name:"MTB NISS Te Miro",date:"2026-04-11",time:""},
+{name:"Y7 and Y8 – St Kentigern Boys' Exchange",date:"2026-04-29",time:""},
+{name:"Y7 and Y8 – St Kentigern Girls' Exchange",date:"2026-04-30",time:""},
+{name:"MTB Camp (Fri-Sat)",date:"2026-05-01",time:""},
+{name:"Y7 and Y8 – Dilworth Exchange",date:"2026-05-20",time:""},
+{name:"Cross Country",date:"2026-05-21",time:""},
+{name:"St Paul's Exchange & CNI Game",date:"2026-05-28",time:""},
+{name:"Diocesan School for Girls Winter Sports Exchange",date:"2026-06-05",time:"6:00am"},
+{name:"WBOPSS Cross Country",date:"2026-06-10",time:""},
+{name:"Y7 and Y8 – Hereworth School",date:"2026-06-11",time:""},
+{name:"NZSS Cross Country",date:"2026-06-13",time:""},
+{name:"Battle of Waipa – Host",date:"2026-06-17",time:""},
+{name:"13OED Outdoor Rock Climbing / Sports Photos",date:"2026-06-18",time:""},
+{name:"Battle of Waipa – Host (Back Up Day)",date:"2026-06-19",time:""},
+{name:"U15 Rugby Exchange – Aussie",date:"2026-06-22",time:"12:30pm"},
+{name:"2026 Premier Netball Tour (Sat-Sun)",date:"2026-06-27",time:""},
+{name:"2026 Premier Netball Tour / Quad Netball Tournament (Mon-Wed)",date:"2026-06-29",time:""},
+{name:"NZSS Lacrosse – Girls (Sat-Sun)",date:"2026-07-04",time:""},
+{name:"NISS Road Cycling Champs (Sat-Sun)",date:"2026-07-04",time:""},
+{name:"NZSS Lacrosse – Girls (Mon-Tue)",date:"2026-07-06",time:""},
+{name:"NISS Track Champs",date:"2026-07-07",time:""},
+{name:"2026 Quad Netball Festival – Premier (Sun-Mon)",date:"2026-07-19",time:""},
+{name:"Y7 and Y8 – Southwell Sports Exchange",date:"2026-07-29",time:""},
+{name:"Mt Maunganui Exchange / New Plymouth Exchange",date:"2026-08-11",time:""},
+{name:"Y7 and Y8 – Cambridge Middle School Exchange",date:"2026-08-12",time:""},
+{name:"Winter Tournament Week (Mon-Fri)",date:"2026-08-31",time:""},
+{name:"AIMS Games (Mon-Fri)",date:"2026-09-07",time:""},
+{name:"Track Cycling Camp (Sat-Sun)",date:"2026-09-19",time:""},
+{name:"NZSS Road Cycling (Sat-Sun)",date:"2026-09-26",time:""},
+{name:"NZSS Road Cycling",date:"2026-09-28",time:""},
+{name:"NZSS MTB Nationals (Sat-Sun)",date:"2026-10-03",time:""},
+{name:"NZSS Track Cycling Champs (Sun-Tue)",date:"2026-10-04",time:""},
+{name:"Sports Awards",date:"2026-10-19",time:""},
+{name:"Sydney Rowing Tour (Sun-Fri)",date:"2026-11-29",time:""},
 
-// ---------- JULY ----------
-{ name: "Cultural Photos", date: "2026-07-28", time: "" },
-{ name: "House Hui", date: "2026-07-28", time: "8:15am" },
-{ name: "House Hui", date: "2026-07-30", time: "8:15am" },
+// ---------- Reporting Calendar Deadlines (Missing) ----------
+{ name: "Insight reports due", date: "2026-02-24", time: "2:00pm" },
+{ name: "At least one assessment result entered in KAMAR", date: "2026-03-02", time: "" },
+{ name: "Remind teachers about PTCs and book unavailability", date: "2026-03-16", time: "" },
+{ name: "All unavailability approved by HOF and communicated", date: "2026-03-19", time: "" },
+{ name: "Insight reports due", date: "2026-03-24", time: "2:00pm" },
+{ name: "Parent teacher conferences (online)", date: "2026-03-31", time: "" },
+{ name: "Parent teacher conferences (online)", date: "2026-04-01", time: "" },
+{ name: "Mid-year report comment banks due to HOFs", date: "2026-04-27", time: "" },
+{ name: "Insight reports due", date: "2026-05-12", time: "2:00pm" },
+{ name: "Insight reports due", date: "2026-08-11", time: "2:00pm" },
+{ name: "Parent teacher conferences (online)", date: "2026-08-19", time: "" },
+{ name: "Parent teacher conferences (online)", date: "2026-08-20", time: "" },
+{ name: "End-of-year comment banks due to HOFs", date: "2026-09-14", time: "" },
+{ name: "Insight reports due", date: "2026-09-22", time: "2:00pm" },
+{ name: "ALL NCEA results in KAMAR", date: "2026-11-09", time: "" },
+{ name: "Insight reports due", date: "2026-11-10", time: "2:00pm" },
+{ name: "Year 7 homeroom reports to buddies for checking", date: "2026-11-12", time: "" },
+{ name: "Year 7 homeroom reports complete", date: "2026-11-13", time: "" },
+{ name: "All Year 11 data entry complete", date: "2026-11-16", time: "" },
+{ name: "Year 7–10 subject reports to buddies for checking", date: "2026-11-24", time: "" },
+{ name: "Year 7–10 subject reports complete", date: "2026-11-26", time: "" }
 
-// ---------- AUGUST ----------
-{ name: "Y12 Leadership Day", date: "2026-08-04", time: "" },
-{ name: "Morris House Camp 6 (starts)", date: "2026-08-10", time: "" },
-{ name: "Open Day", date: "2026-08-19", time: "" },
-{ name: "Parent Teacher Conferences", date: "2026-08-21", time: "" },
-{ name: "Leave Weekend", date: "2026-08-24", time: "" },
-{ name: "Course Selection Event", date: "2026-08-25", time: "3:00pm" },
 
-// ---------- OCTOBER ----------
-{ name: "Labour Day", date: "2026-10-26", time: "" },
-{ name: "IB Exams (start)", date: "2026-10-27", time: "" },
-{ name: "NCEA Y12 & Y13 Tutorials (start)", date: "2026-10-27", time: "" },
-
-// ---------- NOVEMBER ----------
-{ name: "IB Exams (continue)", date: "2026-11-02", time: "" },
-{ name: "NCEA Students on Study Leave (start)", date: "2026-11-02", time: "" },
-{ name: "Year 11 Camp 3 (starts)", date: "2026-11-02", time: "" },
-{ name: "Year 11 Camp 4 (starts)", date: "2026-11-09", time: "" },
-{ name: "NZQA Exams (start)", date: "2026-11-10", time: "" },
-{ name: "Y11 Diploma Week (starts)", date: "2026-11-23", time: "" },
-{ name: "Year 7 Camp (starts)", date: "2026-11-23", time: "" },
-{ name: "Year 8 Experience Week (starts)", date: "2026-11-30", time: "" },
-
-// ---------- DECEMBER ----------
-{ name: "Junior Prizegiving", date: "2026-12-09", time: "" },
-{ name: "Cambodia Service Trip (starts)", date: "2026-12-10", time: "" }
 
 ];
 
@@ -901,8 +1235,11 @@ html += `<div style="
 
 
  // ===== EVENTS & HOLIDAYS SECTION (3-column flowing list) =====
-html += '<h3 style="margin-top:20px;">Key Dates & Events</h3>';
-const all = allEvents().filter(ev => ev.include).sort((a, b) => new Date(a.date) - new Date(b.date));
+html += '<h3 style="margin-top:20px;">Leave Weekends, Holidays and Parent Teacher Confrences</h3>';
+const all = allEvents()
+  .filter(ev => ev.include && ev.summary !== false)
+  .sort((a, b) => new Date(a.date) - new Date(b.date));
+
 
 termConfig.forEach(T => {
   const start = new Date(T.start);
@@ -1110,8 +1447,8 @@ function rowCells(cols, periodIndex, termStart, startDay) {
     div.className = 'slot';
     div.style.position = 'relative';
 
-// ===== WEEKEND CHECKLIST — EVENTS + DEADLINES FOR THE WEEK (SORTED MON → FRI) =====
-if (!date && periodIndex === 0) {
+// ===== WEEKEND CHECKLIST — FLOWING INTO MULTIPLE CELLS =====
+if (!date) {
 
   // Find the Monday on this planner page
   let monday = null;
@@ -1158,22 +1495,40 @@ if (!date && periodIndex === 0) {
     });
   });
 
-  // ✅ Force weekday order (Mon → Fri)
+  // Sort Mon → Fri
   checklist.sort((a, b) => a.date.getDay() - b.date.getDay());
 
-  if (checklist.length) {
+  // Split checklist into chunks (approx 8 lines per cell)
+  const CHUNK_SIZE = 4;
+  const chunks = [];
+  for (let i = 0; i < checklist.length; i += CHUNK_SIZE) {
+    chunks.push(checklist.slice(i, i + CHUNK_SIZE));
+  }
+
+  // Render only the chunk for this period row
+  const chunk = chunks[periodIndex] || [];
+
+  if (chunk.length) {
     div.style.padding = "2mm";
     div.style.fontSize = "11px";
     div.style.color = "#000";
+
+    // Title only on first cell
+    const title = periodIndex === 0 ? `<b>Whats on this week</b><br>` : '';
+
     div.innerHTML =
-      `<b>Weekly Checklist</b><br>` +
-      checklist.map(x => x.text).join("<br>");
+  title +
+  chunk.map(x => `
+    <div class="checkline">${x.text}</div>
+  `).join("");
+
   }
 
   td.appendChild(div);
   tr.appendChild(td);
   return;
 }
+
 
     // ===== REGULAR WEEKDAY CELL HANDLING =====
     if (date) {
@@ -1701,6 +2056,10 @@ const body = encodeURIComponent(
   `Adobe PDF Combiner: https://www.adobe.com/acrobat/online/merge-pdf.html\n\n` +
 
   `Once combined, you can print or bind as a booklet.\n\n` +
+  
+  `Note that there is a small chance that some events in the "Whats on this week" may change.\n` +
+`Please keep an eye on the official Whats On documents which can be found here: \n` +
+`https://intranet.stpeters.school.nz/Publications/ThisWeekNextWeek.aspx?TabSeq=0.\n\n` +
 
   `If you need any assistance with your planner, come and find me in the Science Block in L2 any lunchtime from 1:00.\n\n` +
 
