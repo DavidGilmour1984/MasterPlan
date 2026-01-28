@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>STP Planner 2026</title>
+<title>STP Student Planner 2026</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <style>
@@ -376,11 +376,24 @@ button:hover {
 <script>
 /* ===== BASE DATA ===== */
 const PALETTE = [
-  '#FFB3BA','#FFDFBA','#FFFFBA','#BAFFC9','#BAE1FF','#E0BBFF',
+  '#FFB3BA',
+  '#FFDFBA',
+  '#FFFFBA',
+  '#BAFFC9',
+  '#BAE1FF',
+  '#E0BBFF',
+
+  // existing gradients
   'repeating-linear-gradient(135deg,#FFB3BA 0%,#FFB3BA 20%,#BAE1FF 20%,#BAE1FF 40%)',
   'repeating-linear-gradient(135deg,#BAFFC9 0%,#BAFFC9 20%,#E0BBFF 20%,#E0BBFF 40%)',
-  'repeating-linear-gradient(135deg,#FFFFBA 0%,#FFFFBA 20%,#A8D0FF 20%,#A8D0FF 40%)'
+  'repeating-linear-gradient(135deg,#FFFFBA 0%,#FFFFBA 20%,#A8D0FF 20%,#A8D0FF 40%)',
+
+  // ✅ NEW gradients
+  'repeating-linear-gradient(135deg,#FFDFBA 0%,#FFDFBA 20%,#BAFFC9 20%,#BAFFC9 40%)',
+  'repeating-linear-gradient(135deg,#BAE1FF 0%,#BAE1FF 20%,#FFFFBA 20%,#FFFFBA 40%)',
+  'repeating-linear-gradient(135deg,#E0BBFF 0%,#E0BBFF 20%,#FFB3BA 20%,#FFB3BA 40%)'
 ];
+
 
 const DEFAULT_TERMS=[
  {term:1,start:'2026-02-02',weeks:9,startDay:1},
@@ -400,8 +413,6 @@ let dutyTextP4 = Array(7).fill('');
 
 /* Fixed holidays (skip=true, whole day) */
 const FIXED_EVENTS=[
- {include:true,year:11,skip:true,name:'Diploma Day',date:'2026-02-11',periods:[1,1,1,1,1,1]},
- {include:true,year:9,skip:true,name:'Orientation',date:'2026-02-10',periods:[1,0,0,0,0,0]},
  {include:true,skip:true,name:'',date:'2026-02-02',periods:[1,1,1,1,1,1]},
  {include:true,skip:true,name:'Waitangi Day',date:'2026-02-06',periods:[1,1,1,1,1,1]},
  {include:true,skip:true,name:'Athletics Day',date:'2026-02-25',periods:[1,1,1,1,1,1]},
@@ -423,38 +434,39 @@ const FIXED_EVENTS=[
 /* ===== FIXED DEADLINES (do not affect periods but appear in weekly checklist) ===== */
 const FIXED_DEADLINES = [
   // Insight cycles — evenly spread
-  { name: "Y7–8 insight due",   date: "2026-02-02" }, // Mon
-  { name: "Y9–10 insight due",  date: "2026-02-11" }, // Wed
-  { name: "Y11–13 insight due", date: "2026-02-13" }, // Fri
+  // Insight cycles — evenly spread
+ // { name: "Y7–8 insight due",   date: "2026-02-02" }, // Mon
+//  { name: "Y9–10 insight due",  date: "2026-02-11" }, // Wed
+//  { name: "Y11–13 insight due", date: "2026-02-13" }, // Fri
 
-  { name: "Y7–8 insight chk",   date: "2026-03-02" }, // Mon
-  { name: "Y9–10 insight chk",  date: "2026-03-05" }, // Thu
-  { name: "Y11–13 insight chk", date: "2026-03-12" }, // Thu
+//  { name: "Y7–8 insight chk",   date: "2026-03-02" }, // Mon
+  //{ name: "Y9–10 insight chk",  date: "2026-03-05" }, // Thu
+  //{ name: "Y11–13 insight chk", date: "2026-03-12" }, // Thu
 
   // Comment banks & interviews
-  { name: "Comment banks prep", date: "2026-02-18" }, // Wed
-  { name: "Interview prep open",date: "2026-03-03" }, // Tue
-  { name: "Parent interviews",  date: "2026-03-06" }, // Fri
-  { name: "Interview break",    date: "2026-03-10" }, // Tue
+  //{ name: "Comment banks prep", date: "2026-02-18" }, // Wed
+ // { name: "Interview prep open",date: "2026-03-03" }, // Tue
+ // { name: "Parent interviews",  date: "2026-03-06" }, // Fri
+  //{ name: "Interview break",    date: "2026-03-10" }, // Tue
 
   // Languages / culture
-  { name: "Te Reo week",        date: "2026-03-11" }, // Wed
-  { name: "Pacific lang week",  date: "2026-03-17" }, // Tue
-  { name: "Chinese lang week",     date: "2026-03-26" }, // Thu
+ // { name: "Te Reo week",        date: "2026-03-11" }, // Wed
+ // { name: "Pacific lang week",  date: "2026-03-17" }, // Tue
+//  { name: "Chinese lang week",     date: "2026-03-26" }, // Thu
 
   // Non-uniform / pastoral
-  { name: "Non-uniform day",    date: "2026-02-05" }, // Thu
-  { name: "Non-uniform day",    date: "2026-03-20" }, // Fri
+ // { name: "Non-uniform day",    date: "2026-02-05" }, // Thu
+ // { name: "Non-uniform day",    date: "2026-03-20" }, // Fri
 
   // Exchanges — evenly distributed
-  { name: "Dio exchange",       date: "2026-03-04" }, // Wed
-  { name: "St Paul’s exch",     date: "2026-03-06" }, // Fri 
-  { name: "Kings exch",         date: "2026-02-13" }, // Fri
-  { name: "Epsom exch",         date: "2026-03-18" }, // Wed
-  { name: "Grammar exch",       date: "2026-02-10" }, // Tue
+ // { name: "Dio exchange",       date: "2026-03-04" }, // Wed
+ // { name: "St Paul’s exch",     date: "2026-03-06" }, // Fri 
+ // { name: "Kings exch",         date: "2026-02-13" }, // Fri
+//  { name: "Epsom exch",         date: "2026-03-18" }, // Wed
+ // { name: "Grammar exch",       date: "2026-02-10" }, // Tue
 
   // Major co-curricular
-  { name: "Summer tourn week",  date: "2026-03-24" }  // Tue
+ // { name: "Summer tourn week",  date: "2026-03-24" }  // Tue
 ];
 
 /* Custom events loaded from CSV (skip=false) */
@@ -1439,8 +1451,6 @@ function buildDeadlinePage(className, DeadlineName, Deadlines, dates, students) 
   page.appendChild(table);
   return page;
 }
-
-
 function init() {
   // ✅ Safely skip if printControls container missing
   const printControlsHost = document.getElementById('printControls');
@@ -1450,44 +1460,41 @@ function init() {
   renderPages();
 
   // === LIVE TERM CHECKBOX HANDLERS ===
-['term1','term2','term3','term4'].forEach((id,i)=>{
-  const el = document.getElementById(id);
-  if(el){
-    el.checked = termInclude[i];      // ✅ use your default array values
-    el.addEventListener('change',()=>{
-      termInclude[i] = el.checked;
-      renderPages();
-    });
-  }
-});
-
+  ['term1','term2','term3','term4'].forEach((id,i)=>{
+    const el = document.getElementById(id);
+    if(el){
+      el.checked = termInclude[i];
+      el.addEventListener('change',()=>{
+        termInclude[i] = el.checked;
+        renderPages();
+      });
+    }
+  });
 
   // === PRINTING AND EXTRA PAGE INPUTS ===
   const printBtn = document.getElementById('printBtn');
   if (printBtn) printBtn.onclick = () => window.print();
 
-  ['blankPages', 'gridPages', 'linedPages'].forEach(id => {
+  ['blankPages','gridPages','linedPages'].forEach(id=>{
     const el = document.getElementById(id);
-    if (el) el.oninput = () => renderPages();
+    if(el) el.oninput = () => renderPages();
   });
 
   // === ENABLE DEADLINES CSV UPLOAD HANDLERS ===
   setupDeadlineFileHandlers();
 }
 
-
 window.onload = function () {
   init();
 
-  const loadBtn = document.getElementById('loadBtn');
-  const loadFile = document.getElementById('loadFile');
-  const generateBtn = document.getElementById('generatePlannerBtn');
-  const deadlinesFile = document.getElementById('loadDeadlinesFile');
-const studentSelect = document.getElementById('studentName');
+  const loadBtn        = document.getElementById('loadBtn');
+  const loadFile       = document.getElementById('loadFile');
+  const generateBtn    = document.getElementById('generatePlannerBtn');
+  const deadlinesFile  = document.getElementById('loadDeadlinesFile');
+  const studentSelect  = document.getElementById('studentName');
 
   let timetableLoaded = false;
   let deadlinesLoaded = false;
-  let teacherCode = '';
 
   // === LOAD TIMETABLE CSV ===
   if (loadBtn && loadFile) {
@@ -1499,25 +1506,15 @@ const studentSelect = document.getElementById('studentName');
     loadFile.addEventListener('change', e => {
       const file = e.target.files[0];
       if (!file) return;
+
       const reader = new FileReader();
       reader.onload = ev => {
-  currentTimetableCSV = ev.target.result;
-  timetableLoaded = true;
-  populateStudentDropdown(currentTimetableCSV);
-  alert('✅ Timetable CSV loaded. Select student name, then click Generate.');
-};
-
+        currentTimetableCSV = ev.target.result;
+        timetableLoaded = true;
+        populateStudentDropdown(currentTimetableCSV);
+      };
       reader.readAsText(file);
     });
-  }
-
- // === STUDENT SELECT HANDLER ===
-if (studentSelect) {
-  studentSelect.addEventListener('change', () => {
-    teacherCode = studentSelect.value.trim();
-  });
-
-
   }
 
   // === DEADLINES FILE HANDLER ===
@@ -1536,43 +1533,56 @@ if (studentSelect) {
   // === GENERATE PLANNER ===
   if (generateBtn) {
     generateBtn.addEventListener('click', () => {
+
       if (!timetableLoaded) {
         alert('⚠️ Please load a timetable CSV first.');
         return;
       }
-      teacherCode = studentSelect.value.trim();
-if (!teacherCode) {
-  alert('⚠️ Please select a student name.');
-  return;
-}
-document.getElementById("studentDisplayName").textContent = teacherCode;
 
-
-      if (!deadlinesLoaded) {
-        const proceed = confirm('No deadlines CSV loaded. Continue without deadlines?');
-        if (!proceed) return;
+      let studentNameRaw = studentSelect.value.trim();
+      if (!studentNameRaw) {
+        alert('⚠️ Please select a student name.');
+        return;
       }
 
-      // ✅ Build timetable grid
-      filterTimetableForTeacher(teacherCode);
-
-// Rebuild colors and generate planner pages
-rebuildSubjectsFromGrid();
-renderPages();
-
-// ✅ Now inject student name AFTER pages exist in the DOM
-const nameEl = document.getElementById("studentDisplayName");
-if (nameEl) {
-  // Convert "Lastname, Firstname" → "Firstname Lastname"
-  let parts = teacherCode.split(",");
-  if (parts.length === 2) {
-    teacherCode = parts[1].trim() + " " + parts[0].trim();
-  }
-  nameEl.textContent = teacherCode;
-}
+      // Convert "Lastname, Firstname" → "Firstname Lastname"
+      let studentName = studentNameRaw;
+      if (studentName.includes(',')) {
+        const p = studentName.split(',');
+        studentName = p[1].trim() + ' ' + p[0].trim();
+      }
 
 
-alert(`✅ Planner generated for ${teacherCode}${deadlinesLoaded ? ' (with deadlines)' : ' (no deadlines)'}.`);
+
+      // === BUILD TIMETABLE GRID ===
+      filterTimetableForTeacher(studentNameRaw);
+      rebuildSubjectsFromGrid();
+      renderPages();
+
+      // === UPDATE COVER NAME (after render) ===
+      const nameEl = document.getElementById('studentDisplayName');
+      if (nameEl) nameEl.textContent = studentName;
+
+      // === BUILD TERM TEXT FOR PDF FILENAME ===
+      const includedTerms = termConfig
+        .filter((t,i)=>termInclude[i])
+        .map(t=>t.term);
+
+      let termText = 'No Terms';
+      if (includedTerms.length === 1) {
+        termText = `Term ${includedTerms[0]}`;
+      } else if (includedTerms.length === 4) {
+        termText = 'Terms 1, 2, 3, and 4';
+      } else if (includedTerms.length > 1) {
+        termText =
+          'Terms ' +
+          includedTerms.slice(0,-1).join(', ') +
+          ' and ' +
+          includedTerms.slice(-1);
+      }
+
+      // === SET DOCUMENT TITLE → PDF FILENAME ===
+      document.title = `${studentName} – ${termText} – STP Student Planner 2026`;
 
     });
   }
@@ -1580,6 +1590,7 @@ alert(`✅ Planner generated for ${teacherCode}${deadlinesLoaded ? ' (with deadl
   // === INITIAL BLANK RENDER ===
   renderPages();
 };
+
 
 
 
