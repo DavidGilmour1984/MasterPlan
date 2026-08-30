@@ -5,11 +5,22 @@
 <title>STP Teacher Planner 2026</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg:#f5f7fb; --card:#fff; --ink:#111; --muted:#6b7280;
   --accent:#2563eb; --accentDark:#1e40af;
   --grid:#e5e7eb; --line:#d1d5db; --head:#f8fafc;
+  /* ===== St Peter's brand tokens (PDF pages only) ===== */
+  --stp-crimson:#8a1526; --stp-crimson-dark:#6d0f1d;
+  --stp-navy:#1c2b4a; --stp-navy-dark:#14203a;
+  --stp-parchment:#f7f3ec;
+  --stp-serif:'Playfair Display', Georgia, serif;
+  --stp-sans:'Lato', Helvetica, Arial, sans-serif;
 }
 
 *{box-sizing:border-box}
@@ -53,13 +64,7 @@ h3 {
   border-bottom:2px solid var(--grid);
   padding-bottom:4px;
 }
-.checkline {
-  display: block;
-  padding-left: 47px;      /* space for checkbox */
-  text-indent: -47px;     /* pull first line back */
-  line-height: 1.3;
-  margin-bottom: 2px;
-}
+
 button, input {
   font-family:inherit;
 }
@@ -130,7 +135,7 @@ button:hover {
   padding:5mm 0 5mm 0;      /* less padding top/bottom */
   page-break-after:always;
   position:relative;
-  transform:scale(0.9);     /* ↓ shrink content slightly */
+  transform:scale(0.9);     /* down shrink content slightly */
   transform-origin: top center;
 }
 
@@ -241,6 +246,7 @@ button:hover {
 .summary-table {
   border-collapse:collapse;
   width:100%;
+  margin-top:20px;
   table-layout:fixed;
 }
 
@@ -248,7 +254,7 @@ button:hover {
   border:1px solid #000;
   padding:1px;
   text-align:center;
-  font-size:11px;
+  font-size:10px;
   word-wrap:break-word;
 }
 
@@ -298,28 +304,123 @@ button:hover {
   }
 }
 
+
+/* ============================================================
+   St Peter's PDF page styling (does not affect control panel)
+   ============================================================ */
+.page { font-family: var(--stp-sans); }
+
+/* Cover page */
+.page .cover.stp-cover {
+  background: var(--stp-navy);
+  color:#fff;
+}
+.page .cover.stp-cover::before {
+  content:"";
+  position:absolute; left:0; right:0; top:0; height:14mm;
+  background: var(--stp-crimson);
+}
+.page .cover.stp-cover::after {
+  content:"";
+  position:absolute; left:0; right:0; bottom:0; height:14mm;
+  background: var(--stp-crimson);
+}
+.page .cover.stp-cover h1 {
+  font-family: var(--stp-serif);
+  color:#fff;
+  letter-spacing:2px;
+}
+.page .cover.stp-cover h2 {
+  font-family: var(--stp-serif);
+  color:#f0d9dd;
+  font-weight:600;
+}
+.page .cover.stp-cover p { color:#cdd5e4 !important; font-family:var(--stp-sans); }
+
+/* Section headings on summary / content pages */
+.page h2, .page h3, .page h4 {
+  font-family: var(--stp-serif);
+  color: var(--stp-crimson);
+}
+.page h2 { border-bottom:3px solid var(--stp-crimson); padding-bottom:4px; }
+.page h3 { border-bottom:2px solid var(--stp-navy); color:var(--stp-navy); }
+.page h4 { color: var(--stp-navy); }
+
+/* Weekly grid header cells -> navy band */
+.week-grid th {
+  background: var(--stp-navy);
+  color:#fff;
+  font-family: var(--stp-sans);
+  font-weight:700;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+  color-adjust: exact !important;
+}
+/* Skipped-day headers keep a muted look but branded */
+.week-grid th[style*="e5e7eb"] {
+  background:#e9e2d6 !important; color:#7a6f5c !important;
+}
+
+/* Summary + timetable tables -> crimson header row, navy gridlines */
+.summary-table th {
+  background: var(--stp-crimson) !important;
+  color:#fff;
+  font-family: var(--stp-sans);
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+  color-adjust: exact !important;
+}
+.summary-table th, .summary-table td { border:1px solid var(--stp-navy); }
+
+/* Notes / duty accents */
+.divider { background: var(--stp-parchment) !important; }
+
+/* Deadline pages headings */
+.Deadline-page { font-family: var(--stp-sans); }
+
+/* ===== BATCH EXPORT (html2pdf) - mirror @media print .page rules ===== */
+body.batch-export .card,
+body.batch-export .no-print,
+body.batch-export #printControls {
+  display: none !important;
+}
+body.batch-export .page {
+  width: 210mm !important;
+  height: 297mm !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  transform: none !important;
+  page-break-after: always !important;
+}
+body.batch-export .hl {
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+  color-adjust: exact !important;
+  background-clip: border-box !important;
+  mix-blend-mode: normal !important;
+}
+
 </style>
 <body>
 <div class="wrap">
   <div class="card">
-    <h2>St Peter’s Planner 2026</h2>
+    <h2>St Peter's Planner 2026</h2>
 
     <!-- ===== CONTROL PANEL ===== -->
     <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:40px;margin-top:20px;">
 
       <!-- LEFT SIDE BUTTONS -->
       <div style="display:flex;flex-direction:column;gap:14px;min-width:260px;">
-        <button id="loadBtn" style="padding:12px 18px;font-size:18px;">📂 Load Timetable CSV</button>
-        <button id="loadDeadlinesBtn" style="padding:12px 18px;font-size:18px;">🎯 Load Deadlines (optional)</button>
+        <button id="loadBtn" style="padding:12px 18px;font-size:18px;">Load Timetable CSV</button>
+        <button id="loadDeadlinesBtn" style="padding:12px 18px;font-size:18px;">Load Deadlines (optional)</button>
         <a href="https://docs.google.com/spreadsheets/d/1GER9NAsMzJlg3sJFk5mkyJYpulktLufw_aOEZ2kJEwE/edit?gid=2088320660#gid=2088320660"
    target="_blank"
    style="display:block;text-align:center;font-size:16px;margin-top:6px;color:#2563eb;text-decoration:none;font-weight:500;">
    Deadline Template
 </a>
 
-        <button id="printBtn" style="padding:12px 18px;font-size:18px;">🖨️ Save PDF</button>
-        <button id="emailBtn" style="padding:12px 18px;font-size:18px;background:#0a66c2;">
-  📧 Email via Outlook</button>
+        <button id="printBtn" style="padding:12px 18px;font-size:18px;">Save PDF</button>
+
         <div style="margin-top:12px;">
           <label for="teacherCode"
        style="font-weight:600;font-size:18px;display:block;margin-bottom:6px;">
@@ -337,8 +438,28 @@ button:hover {
         <button id="generatePlannerBtn"
                 style="margin-top:16px;background:#16a34a;font-size:20px;
                        padding:14px;border-radius:10px;">
-          ✅ Generate Planner
+          Generate Planner
         </button>
+
+        <!-- ===== BATCH GENERATION ===== -->
+        <div style="margin-top:20px;border-top:2px solid #e5e7eb;padding-top:16px;">
+          <label for="batchCodes"
+                 style="font-weight:600;font-size:18px;display:block;margin-bottom:6px;">
+            Batch Codes (comma separated)
+          </label>
+          <textarea id="batchCodes" rows="3"
+                    placeholder="e.g. RYA, GIL, SMI, JON"
+                    style="width:100%;padding:10px;font-size:18px;border-radius:10px;
+                           border:1px solid #ccc;text-transform:uppercase;
+                           font-family:inherit;resize:vertical;"></textarea>
+          <button id="batchGenerateBtn"
+                  style="margin-top:12px;background:#9333ea;font-size:20px;
+                         padding:14px;border-radius:10px;width:100%;">
+            Batch Generate PDFs
+          </button>
+          <div id="batchStatus"
+               style="margin-top:10px;font-size:15px;color:#444;text-align:center;"></div>
+        </div>
       </div>
 
       <!-- RIGHT SIDE: TERMS + EXTRA PAGES -->
@@ -416,444 +537,60 @@ let storedDeadlinePages = [];
 
 /* Fixed holidays (skip=true, whole day) */
 const FIXED_EVENTS=[
- {include:true,skip:true,summary:false,name:'',date:'2026-02-02',periods:[1,1,1,1,1,1]},
- {include:true,skip:true,summary:true,name:'Waitangi Day',date:'2026-02-06',periods:[1,1,1,1,1,1]},
- {include:true,skip:true,summary:false,name:'Athletics Day',date:'2026-02-25',periods:[1,1,1,1,1,1]},
- {include:true,skip:true,summary:true,name:'Leave Weekend',date:'2026-03-09',periods:[1,1,1,1,1,1]},
- {include:true,skip:true,summary:true,name:'Parent Conferences',date:'2026-04-02',periods:[1,1,1,1,1,1]},
- {include:true,skip:true,summary:true,name:'Good Friday',date:'2026-04-03',periods:[1,1,1,1,1,1]},
- {include:true,skip:true,summary:false,name:'Teacher Only Day',date:'2026-04-20',periods:[1,1,1,1,1,1]},
- {include:true,skip:true,summary:true,name:'ANZAC Day',date:'2026-04-27',periods:[1,1,1,1,1,1]},
- {include:true,skip:true,summary:true,name:'Leave Weekend',date:'2026-05-29',periods:[1,1,1,1,1,1]},
- {include:true,skip:true,summary:true,name:"King's Birthday",date:'2026-06-01',periods:[1,1,1,1,1,1]},
- {include:true,skip:true,summary:false,name:'Teacher Only Day',date:'2026-07-20',periods:[1,1,1,1,1,1]},
- {include:true,skip:true,summary:true,name:'Parent Conferences',date:'2026-08-21',periods:[1,1,1,1,1,1]},
- {include:true,skip:true,summary:true,name:'Leave Weekend',date:'2026-08-24',periods:[1,1,1,1,1,1]},
- {include:true,skip:true,summary:true,name:'Leave Weekend',date:'2026-08-25',periods:[1,1,1,1,1,1]},
- {include:true,skip:true,summary:true,name:'Labour Day',date:'2026-10-26',periods:[1,1,1,1,1,1]},
- {include:true,skip:true,summary:false,name:'End of Year',date:'2026-12-10',periods:[1,1,1,1,1,1]},
- {include:true,skip:true,summary:false,name:'End of Year',date:'2026-12-11',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'',date:'2026-02-02',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'Waitangi Day',date:'2026-02-06',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'Athletics Day',date:'2026-02-25',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'Leave Weekend',date:'2026-03-09',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'Parent Conferences',date:'2026-04-02',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'Good Friday',date:'2026-04-03',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'Teacher Only Day',date:'2026-04-20',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'ANZAC Day',date:'2026-04-27',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'Leave Weekend',date:'2026-05-29',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:"King's Birthday",date:'2026-06-01',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'Teacher Only Day',date:'2026-07-20',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'Parent Conferences',date:'2026-08-21',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'Leave Weekend',date:'2026-08-24',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'Leave Weekend',date:'2026-08-25',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'Labour Day',date:'2026-10-26',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'End of Year',date:'2026-12-10',periods:[1,1,1,1,1,1]},
+ {include:true,skip:true,name:'End of Year',date:'2026-12-11',periods:[1,1,1,1,1,1]},
 ];
 /* ===== FIXED DEADLINES (do not affect periods but appear in weekly checklist) ===== */
-
 const FIXED_DEADLINES = [
-// ---------- St Peter's Staff Calendar ----------
- { name: "New staff induction", date: "2026-01-27", time: "" },
-  { name: "Middle leaders", date: "2026-01-28", time: "" },
-  { name: "All staff only day", date: "2026-01-29", time: "" },
-  { name: "Full Staff Welcome", date: "2026-01-30", time: "3:00pm" },
-  { name: "Faculty meeting", date: "2026-02-09", time: "3:30pm" },
-  { name: "Staff Meeting", date: "2026-02-13", time: "8:00am" },
-  { name: "HoF Meeting", date: "2026-02-16", time: "3:30pm" },
-  { name: "Pastoral Meeting", date: "2026-02-16", time: "3:30pm" },
-  { name: "Faculty Meeting", date: "2026-02-20", time: "8:15am" },
-  { name: "IB Meeting", date: "2026-02-23", time: "3:30pm" },
-  { name: "Staff Workshops", date: "2026-02-27", time: "8:15am" },
-  { name: "IB Meeting", date: "2026-03-23", time: "3:30pm" },
-{ name: "Staff Workshops", date: "2026-03-27", time: "8:15am" },
-{ name: "HoF Meeting", date: "2026-03-30", time: "3:30pm" },
-{ name: "Pastoral Meeting", date: "2026-03-30", time: "3:30pm" },
-{ name: "Staff Meeting", date: "2026-04-24", time: "8:15am" },
-{ name: "Faculty Meeting", date: "2026-05-01", time: "8:15am" },
-{ name: "Pastoral Meeting", date: "2026-05-04", time: "3:30pm" },
-{ name: "Staff Meeting", date: "2026-05-08", time: "8:15am" },
-{ name: "IB Meeting", date: "2026-05-11", time: "3:30pm" },
-{ name: "Faculty Meeting", date: "2026-05-15", time: "8:15am" },
-{ name: "Faculty Meeting", date: "2026-05-18", time: "3:30pm" },
-{ name: "Staff Workshops", date: "2026-05-22", time: "8:15am" },
-{ name: "HoF Meeting", date: "2026-05-25", time: "3:30pm" },
-{ name: "Pastoral Meeting", date: "2026-05-25", time: "3:30pm" },
-{ name: "Whole Staff Meet", date: "2026-06-05", time: "8:15am" },
-{ name: "Faculty Meeting", date: "2026-06-08", time: "3:30pm" },
-{ name: "IB Meeting", date: "2026-06-12", time: "8:15am" },
-{ name: "SPPA Staff Morning", date: "2026-06-15", time: "10:00am" },
-{ name: "HoF Meeting", date: "2026-06-15", time: "3:30pm" },
-{ name: "Pastoral Meeting", date: "2026-06-15", time: "3:30pm" },
-{ name: "Staff Meeting", date: "2026-06-19", time: "8:15am" },
-{ name: "Faculty Meeting", date: "2026-06-22", time: "8:15am" },
-{ name: "Faculty Meeting", date: "2026-06-26", time: "8:15am" },
-{ name: "Faculty Meeting", date: "2026-07-24", time: "8:15am" },
-{ name: "Faculty Meeting", date: "2026-07-27", time: "3:30pm" },
-{ name: "Staff Meeting", date: "2026-07-31", time: "8:15am" },
-{ name: "Faculty Meeting", date: "2026-08-03", time: "3:30pm" },
-{ name: "HoF Meeting", date: "2026-08-03", time: "3:30pm" },
-{ name: "Pastoral Meeting", date: "2026-08-03", time: "3:30pm" },
-{ name: "Staff Meeting", date: "2026-08-07", time: "8:15am" },
-{ name: "Faculty Meeting", date: "2026-08-10", time: "3:30pm" },
-{ name: "IB Meeting", date: "2026-08-14", time: "8:15am" },
-{ name: "Faculty Meeting", date: "2026-08-17", time: "3:30pm" },
-{ name: "Staff Meeting", date: "2026-08-21", time: "8:15am" },
-{ name: "Faculty Meeting", date: "2026-08-28", time: "8:15am" },
-{ name: "HoF Meeting", date: "2026-08-31", time: "3:30pm" },
-{ name: "Pastoral Meeting", date: "2026-08-31", time: "3:30pm" },
-{ name: "Whole Staff Meet", date: "2026-09-04", time: "8:15am" },
-{ name: "Faculty Meeting", date: "2026-09-07", time: "3:30pm" },
-{ name: "Faculty Meeting", date: "2026-09-11", time: "8:15am" },
-{ name: "Faculty Meeting", date: "2026-09-14", time: "3:30pm" },
-{ name: "Faculty Meeting", date: "2026-09-18", time: "8:15am" },
-{ name: "HoF Meeting", date: "2026-09-21", time: "3:30pm" },
-{ name: "Pastoral Meeting", date: "2026-09-21", time: "3:30pm" },
-{ name: "Faculty Meeting", date: "2026-09-25", time: "8:15am" },
-{ name: "Faculty Meeting", date: "2026-10-12", time: "3:30pm" },
-{ name: "STP Room Open Day", date: "2026-10-16", time: "" },
-{ name: "Staff Meeting", date: "2026-10-16", time: "8:15am" },
-{ name: "Faculty Meeting", date: "2026-10-23", time: "8:15am" },
-{ name: "HoF Meeting", date: "2026-10-26", time: "3:30pm" },
-{ name: "Pastoral Meeting", date: "2026-10-26", time: "3:30pm" },
-{ name: "Faculty Meeting", date: "2026-10-30", time: "8:15am" },
-{ name: "Faculty Meeting", date: "2026-11-02", time: "3:30pm" },
-{ name: "Staff Workshops", date: "2026-11-06", time: "8:15am" },
-{ name: "HoF Meeting", date: "2026-11-09", time: "3:30pm" },
-{ name: "Pastoral Meeting", date: "2026-11-09", time: "3:30pm" },
-{ name: "Faculty Meeting", date: "2026-11-13", time: "3:30pm" },
-{ name: "Faculty Meeting", date: "2026-11-16", time: "3:30pm" },
-{ name: "IB Meeting", date: "2026-11-20", time: "8:15am" },
-{ name: "Faculty Meeting", date: "2026-11-23", time: "3:30pm" },
-{ name: "Whole Staff Meet", date: "2026-11-27", time: "8:15am" },
-{ name: "HoF Meeting", date: "2026-11-30", time: "3:30pm" },
-{ name: "Pastoral Meeting", date: "2026-11-30", time: "3:30pm" },
-{ name: "Faculty Meeting", date: "2026-12-04", time: "8:15am" },
-{ name: "Faculty Meeting", date: "2026-12-07", time: "3:30pm" },
-{ name: "Staff Farewells / Lunch", date: "2026-12-09", time: "" },
-{ name: "Staff Christmas Function", date: "2026-12-10", time: "" },
-{ name: "Staff Only – Morning", date: "2026-12-10", time: "" },
+  // Insight cycles - evenly spread
+ // { name: "Y7-8 insight due",   date: "2026-02-02" }, // Mon
+//  { name: "Y9-10 insight due",  date: "2026-02-11" }, // Wed
+//  { name: "Y11-13 insight due", date: "2026-02-13" }, // Fri
 
-// ---------- St Peter's Core Activities Calendar ----------
-{name:"All boarding students arrive at houses",date:"2026-02-02",time:"4:00pm"},
-{name:"Parent twilight event",date:"2026-02-02",time:"5:00pm"},
-{name:"Poowhiri preparation",date:"2026-02-03",time:"8:15am"},
-{name:"Poowhiri for all new students, families and staff",date:"2026-02-03",time:"9:00am"},
-{name:"Assembly",date:"2026-02-03",time:"9:45am"},
-{name:"House meetings",date:"2026-02-03",time:"10:00am"},
-{name:"Morning tea",date:"2026-02-03",time:"10:30am"},
-{name:"Homeroom / Mentor",date:"2026-02-03",time:"11:00am"},
-{name:"12IB Orientation",date:"2026-02-03",time:"11:50am"},
-{name:"ID Photos",date:"2026-02-09",time:""},
-{name:"SPPA Meeting",date:"2026-02-09",time:"6:00pm"},
-{name:"House Hui",date:"2026-02-10",time:"8:15am"},
-{name:"Boarding Prefects Child Protection Training",date:"2026-02-10",time:"10:00am"},
-{name:"House Hui",date:"2026-02-12",time:"8:15am"},
-{name:"Year 7 Meet the Teacher",date:"2026-02-13",time:""},
-{name:"International Students Activity Day",date:"2026-02-16",time:"9:00am"},
-{name:"Prefect Training",date:"2026-02-17",time:"8:00am"},
-{name:"Y12 Parent Meet and Greet",date:"2026-02-18",time:"3:30pm"},
-{name:"Parent Morning Tea",date:"2026-02-19",time:"8:15am"},
-{name:"Academic and Leadership Assembly",date:"2026-02-23",time:"8:15am"},
-{name:"Year 12 Ryda Workshop",date:"2026-02-23",time:"9:30am"},
-{name:"90th Celebration",date:"2026-02-25",time:""},
-{name:"Academic Photos",date:"2026-02-26",time:""},
-{name:"OWL Farm Focus Day",date:"2026-02-26",time:""},
-{name:"University of Canterbury Visit",date:"2026-02-26",time:"12:40pm"},
-{name:"Non-uniform Day",date:"2026-02-27",time:""},
-{name:"Year 11 Camp 1",date:"2026-03-02",time:""},
-{name:"Prefect Training",date:"2026-03-03",time:"8:00am"},
-{name:"University of Auckland Visit",date:"2026-03-04",time:"12:40pm"},
-{name:"Open Day 1",date:"2026-03-05",time:""},
-{name:"AUT University Visit",date:"2026-03-06",time:"12:30pm"},
-{name:"Boarding Parent Afternoon Tea",date:"2026-03-06",time:"2:00pm"},
-{name:"Leave Weekend",date:"2026-03-09",time:""},
-{name:"Morris House Camp 1",date:"2026-03-09",time:""},
-{name:"Language and Cultural Week",date:"2026-03-10",time:""},
-{name:"200m Open Swim Champs",date:"2026-03-11",time:"12:40pm"},
-{name:"University of Waikato Visit",date:"2026-03-11",time:"12:40pm"},
-{name:"Information Evening Auckland",date:"2026-03-12",time:""},
-{name:"Massey University Visit",date:"2026-03-13",time:"12:30pm"},
-{name:"Year 13 Spookers Visit",date:"2026-03-13",time:"4:00pm"},
-{name:"Parent Morning Tea",date:"2026-03-16",time:"8:15am"},
-{name:"Victoria University Wellington Visit",date:"2026-03-17",time:"12:40pm"},
-{name:"Wintec Visit",date:"2026-03-19",time:"12:40pm"},
-{name:"Morris House Camp 2",date:"2026-03-23",time:""},
-{name:"Easter Service - blazers to be worn",date:"2026-03-30",time:""},
-{name:"SPPA AGM",date:"2026-03-30",time:"6:00pm"},
-{name:"Trustboard Meeting",date:"2026-03-31",time:"7:00pm"},
-{name:"Parent Teacher Conferences",date:"2026-04-02",time:""},
-{name:"Morris House Camp 3",date:"2026-04-20",time:""},
-{name:"Teacher Only Day",date:"2026-04-20",time:""},
-{name:"Anzac Service - Formal Uniform",date:"2026-04-21",time:""},
-{name:"Anzac Day Observed",date:"2026-04-27",time:""},
-{name:"House Hui",date:"2026-04-28",time:"8:15am"},
-{name:"OWL Farm Focus Day",date:"2026-04-29",time:""},
-{name:"Otago University Information Session",date:"2026-04-29",time:"12:40pm"},
-{name:"House Hui",date:"2026-04-30",time:"8:15am"},
-{name:"Alumni Event - TBC",date:"2026-05-01",time:""},
-{name:"Y10 Camp 1 Girls",date:"2026-05-04",time:""},
-{name:"SPPA",date:"2026-05-04",time:"6:00pm"},
-{name:"Information Evening Taupo",date:"2026-05-07",time:""},
-{name:"Year 10 Camp 2 Boys",date:"2026-05-11",time:""},
-{name:"Prefect Training",date:"2026-05-12",time:"8:00am"},
-{name:"Parent Morning Tea",date:"2026-05-13",time:"8:15am"},
-{name:"School Ball",date:"2026-05-14",time:"7:00pm"},
-{name:"Non-uniform Day Pink Shirt",date:"2026-05-15",time:""},
-{name:"Year 13 Breakfast",date:"2026-05-15",time:"8:00am"},
-{name:"Morris House Camp 4",date:"2026-05-18",time:""},
-{name:"University of Waikato Second Visit",date:"2026-05-20",time:"12:40pm"},
-{name:"Blood Drive",date:"2026-05-26",time:""},
-{name:"Open Day 2",date:"2026-05-27",time:""},
-{name:"Boarding Afternoon Tea",date:"2026-05-28",time:"2:30pm"},
-{name:"Leave Weekend",date:"2026-05-29",time:""},
-{name:"Leave Weekend",date:"2026-06-01",time:""},
-{name:"King's Birthday",date:"2026-06-01",time:""},
-{name:"SPPA",date:"2026-06-02",time:"6:00pm"},
-{name:"Foundation",date:"2026-06-04",time:""},
-{name:"Prefect Training",date:"2026-06-04",time:"8:00am"},
-{name:"Morris House Camp 5",date:"2026-06-08",time:""},
-{name:"Information Evening Tauranga",date:"2026-06-11",time:""},
-{name:"Boarding Mid-winter Christmas",date:"2026-06-15",time:"6:00pm"},
-{name:"Prefect Training",date:"2026-06-16",time:"8:00am"},
-{name:"7 Year Club Dinner",date:"2026-06-18",time:"7:00pm"},
-{name:"Parent Morning Tea",date:"2026-06-23",time:"8:15am"},
-{name:"Junior House Music / House Haka",date:"2026-06-25",time:""},
-{name:"Last Day of Term 2",date:"2026-06-26",time:""},
-{name:"Year 7 and 8 Flag Day",date:"2026-06-26",time:""},
-{name:"Teacher Only Day",date:"2026-07-20",time:""},
-{name:"SPPA",date:"2026-07-20",time:"6:00pm"},
-{name:"Alumni",date:"2026-07-27",time:""},
-{name:"Cultural Photos",date:"2026-07-28",time:""},
-{name:"Prefect Training",date:"2026-07-28",time:"8:00am"},
-{name:"House Hui",date:"2026-07-28",time:"8:15am"},
-{name:"Parent Morning Tea",date:"2026-07-30",time:"8:15am"},
-{name:"House Hui",date:"2026-07-30",time:"8:15am"},
-{name:"Y12 Leadership Day",date:"2026-08-04",time:""},
-{name:"Foundation",date:"2026-08-06",time:""},
-{name:"Morris House Camp 6",date:"2026-08-10",time:""},
-{name:"University of Waikato Third Visit",date:"2026-08-13",time:"12:40pm"},
-{name:"Parents Afternoon Tea",date:"2026-08-14",time:"2:00pm"},
-{name:"Open Day",date:"2026-08-19",time:""},
-{name:"Prefect Training",date:"2026-08-20",time:"8:00am"},
-{name:"Gumboot Function",date:"2026-08-21",time:""},
-{name:"Parent Teacher Conferences",date:"2026-08-21",time:""},
-{name:"Leave Weekend",date:"2026-08-24",time:""},
-{name:"Course Selection Event",date:"2026-08-25",time:"3:00pm"},
-{name:"Parent Morning Tea",date:"2026-09-14",time:"8:15am"},
-{name:"Boarding's Got Talent",date:"2026-09-14",time:"7:00pm"},
-{name:"OWL Farm Focus Day",date:"2026-09-17",time:""},
-{name:"Tug of War",date:"2026-09-24",time:"12:30pm"},
-{name:"Prefects Dinner",date:"2026-09-24",time:"6:00pm"},
-{name:"Last Day of Term 3",date:"2026-09-25",time:"4:00am"},
-{name:"Alumni",date:"2026-09-28",time:"12:00am"},
-{name:"SPPA",date:"2026-10-12",time:"6:00pm"},
-{name:"House Hui",date:"2026-10-13",time:"8:15am"},
-{name:"Parent Morning Tea",date:"2026-10-15",time:"8:15am"},
-{name:"House Hui",date:"2026-10-15",time:"8:15am"},
-{name:"IB 13 Last Day",date:"2026-10-16",time:""},
-{name:"Broadhurst House Dinner",date:"2026-10-16",time:"6:00pm"},
-{name:"Year 11 Camp 2",date:"2026-10-19",time:""},
-{name:"Graduates Dinner",date:"2026-10-22",time:""},
-{name:"Senior Prizegiving and Graduation",date:"2026-10-23",time:""},
-{name:"Labour Day",date:"2026-10-26",time:""},
-{name:"IB Exams",date:"2026-10-27",time:""},
-{name:"NCEA Y12 and Y13 Tutorials",date:"2026-10-27",time:""},
-{name:"NCEA Students on Study Leave",date:"2026-10-30",time:"3:20pm"},
-{name:"IB Exams",date:"2026-11-02",time:""},
-{name:"Year 11 Camp 3",date:"2026-11-02",time:""},
-{name:"NCEA students on study leave",date:"2026-11-02",time:""},
-{name:"Foundation",date:"2026-11-05",time:""},
-{name:"IB Exams",date:"2026-11-09",time:""},
-{name:"Year 11 Camp 4",date:"2026-11-09",time:""},
-{name:"NZQA Exams",date:"2026-11-10",time:""},
-{name:"OWL Farm Focus Day",date:"2026-11-10",time:""},
-{name:"NZQA Exams",date:"2026-11-16",time:""},
-{name:"NZQA Exams",date:"2026-11-23",time:""},
-{name:"Y11 Diploma Week",date:"2026-11-23",time:""},
-{name:"Year 7 Camp",date:"2026-11-23",time:""},
-{name:"NZQA Exams",date:"2026-11-30",time:""},
-{name:"Year 8 Experience Week",date:"2026-11-30",time:""},
-{name:"SPPA Final Christmas Meeting",date:"2026-12-04",time:"6:00pm"},
-{name:"Junior Prizegiving",date:"2026-12-09",time:""},
-{name:"2026 Cambodia Service Trip",date:"2026-12-10",time:""},
-{name:"2026 Cambodia Service Trip",date:"2026-12-14",time:""},
-{name:"2026 Cambodia Service Trip",date:"2026-12-21",time:""},
+//  { name: "Y7-8 insight chk",   date: "2026-03-02" }, // Mon
+  //{ name: "Y9-10 insight chk",  date: "2026-03-05" }, // Thu
+  //{ name: "Y11-13 insight chk", date: "2026-03-12" }, // Thu
 
-// ---------- St Peter's Cultural Calendar ----------
-{name:"Production workshop (Thu-Fri)",date:"2026-01-29",time:"10:00am"},
-{name:"Arts & Culture Lunch",date:"2026-02-13",time:"12:10pm"},
-{name:"Arts & Cultural co-curriculum",date:"2026-02-16",time:""},
-{name:"Spirit Week (Mon-Fri)",date:"2026-02-23",time:""},
-{name:"STARS Concert",date:"2026-03-17",time:""},
-{name:"Beauty and the Beast Flash",date:"2026-03-22",time:""},
-{name:"Year 12 & 13 Drama Showcase (Tue-Thu)",date:"2026-03-24",time:""},
-{name:"Cultural Celebrations (Mon-Tue)",date:"2026-03-30",time:""},
-{name:"Production workshop day",date:"2026-04-20",time:""},
-{name:"Production Tech Week (Tue-Fri)",date:"2026-04-21",time:""},
-{name:"Production opening night",date:"2026-04-25",time:""},
-{name:"Production Matinee",date:"2026-04-26",time:""},
-{name:"Production (Tue-Fri)",date:"2026-04-28",time:""},
-{name:"World Vision Conference",date:"2026-05-05",time:""},
-{name:"Rock of Ages",date:"2026-05-20",time:"6:30pm"},
-{name:"Rockquest Regionals",date:"2026-05-23",time:""},
-{name:"Spelling Bee (Tue-Thu)",date:"2026-06-02",time:"12:40pm"},
-{name:"Chamber Music Contest Regionals",date:"2026-06-03",time:""},
-{name:"NDC Dance Competition",date:"2026-06-08",time:""},
-{name:"Year 9 PFA Day",date:"2026-06-09",time:""},
-{name:"Big Sing Regionals",date:"2026-06-11",time:""},
-{name:"National Dance Challenge",date:"2026-06-12",time:""},
-{name:"Senior PFA Curriculum",date:"2026-06-17",time:""},
-{name:"Bevan Cup & Kammermusik",date:"2026-06-22",time:""},
-{name:"Senior House Music",date:"2026-06-23",time:""},
-{name:"House Theatres",date:"2026-06-24",time:"12:40pm"},
-{name:"Mulled Wine Evening",date:"2026-06-24",time:"5:00pm"},
-{name:"Dance Camp (Mon-Tue)",date:"2026-07-27",time:""},
-{name:"Music Gala",date:"2026-07-30",time:"6:30pm"},
-{name:"Dance NZ Made (Sat-Sun)",date:"2026-08-08",time:""},
-{name:"KBB Music Festival",date:"2026-08-11",time:""},
-{name:"ASPIRE Dance Showcase (Wed-Thu)",date:"2026-08-12",time:"6:30pm"},
-{name:"Kapahaka Festival",date:"2026-08-28",time:""},
-{name:"ITM Festival Waikato",date:"2026-08-28",time:"9:00am"},
-{name:"Joso School visit",date:"2026-09-10",time:""},
-{name:"MEFA Music Nationals (Mon-Thu)",date:"2026-09-21",time:""},
-{name:"MTA Showcase (Wed-Thu)",date:"2026-10-14",time:""},
-{name:"Arts Awards",date:"2026-10-20",time:""},
-{name:"Year 11 Drama Showcase (Mon-Tue)",date:"2026-11-02",time:""},
-{name:"Y7-11 Curriculum PFA Day",date:"2026-11-19",time:""},
+  // Comment banks & interviews
+  //{ name: "Comment banks prep", date: "2026-02-18" }, // Wed
+ // { name: "Interview prep open",date: "2026-03-03" }, // Tue
+ // { name: "Parent interviews",  date: "2026-03-06" }, // Fri
+  //{ name: "Interview break",    date: "2026-03-10" }, // Tue
 
-// ---------- St Peter's Curriculum Calendar ----------
-{name:"Course Confirmation – afternoon (Wed-Thu)",date:"2026-01-28",time:""},
-{name:"Yr11 History Trip",date:"2026-02-11",time:"8:15am"},
-{name:"130ED Open Water Scuba Diving Course (Tue-Thu)",date:"2026-02-17",time:""},
-{name:"Yr13 History Waikato Wars Trip",date:"2026-02-20",time:"8:15am"},
-{name:"Yr12 History Internal",date:"2026-02-24",time:"8:15am"},
-{name:"12GEO Tongariro Research Trip (Mon-Wed)",date:"2026-03-02",time:""},
-{name:"120ED Whitewater Kayaking 1 (Wed-Fri)",date:"2026-03-04",time:""},
-{name:"Yr8 Social Studies Tourism Trip",date:"2026-03-05",time:""},
-{name:"13GEO Summer Whirinaki Trip",date:"2026-03-06",time:"8:00am"},
-{name:"11HS Waikato War Memorial Sites",date:"2026-03-11",time:""},
-{name:"11GEO Oreti Point Research Trip",date:"2026-03-12",time:""},
-{name:"13BUS Young Enterprise Scheme – Regional Kickstart",date:"2026-03-13",time:"8:15am"},
-{name:"Year 12 Leadership Experience",date:"2026-03-16",time:"8:40am"},
-{name:"Yr9 Social Studies – History of Cambridge",date:"2026-03-17",time:"8:15am"},
-{name:"Year 12 Leadership Experience",date:"2026-03-17",time:"8:40am"},
-{name:"120ED Whitewater Kayaking 2 (Wed-Fri)",date:"2026-03-18",time:""},
-{name:"Japan Education & Culture Tour 2026 (Wed-Fri)",date:"2026-04-01",time:""},
-{name:"2026 European Science Tour (Sat-Sun)",date:"2026-04-03",time:""},
-{name:"Japan Education & Culture Tour 2026 (Wed-Sun)",date:"2026-04-01",time:""},
-{name:"2026 European Science Tour (Sat-Sun)",date:"2026-04-04",time:""},
-{name:"2026 European Science Tour (Mon-Sun)",date:"2026-04-06",time:""},
-{name:"13ICH Chemistry IA – Data collection",date:"2026-04-28",time:"8:45am"},
-{name:"09COM – Market Day 1",date:"2026-04-29",time:"11:30am"},
-{name:"13OED Rock climbing",date:"2026-05-01",time:"7:00am"},
-{name:"12TOU and 13TOU and EAL – RC",date:"2026-05-06",time:"8:15am"},
-{name:"12OED Bush Camp 1 (Mon-Wed)",date:"2026-05-11",time:""},
-{name:"LITNUM window (Mon-Fri)",date:"2026-05-18",time:""},
-{name:"12OED Bush Camp 2 (Mon-Wed)",date:"2026-05-18",time:""},
-{name:"12/13 IB Business Management",date:"2026-05-20",time:"8:45am"},
-{name:"Year 10 English monologue workshop",date:"2026-05-26",time:"8:45am"},
-{name:"EE Celebration",date:"2026-05-27",time:""},
-{name:"13BUS – Strategic Responses Task",date:"2026-05-27",time:"8:15am"},
-{name:"13BUS – Young Enterprise Scheme",date:"2026-05-28",time:"8:15am"},
-{name:"12THP and 13THP – Theology",date:"2026-06-02",time:"8:00am"},
-{name:"IB English Individual Oral internal assessment (Wed-Fri)",date:"2026-06-03",time:""},
-{name:"Year 10 Night at the Museum",date:"2026-06-09",time:"1:30pm"},
-{name:"Year 10 Night at the Museum",date:"2026-06-11",time:"1:30pm"},
-{name:"13OED Rock climbing",date:"2026-06-18",time:"7:00am"},
-{name:"IB and 13 NCEA Geography",date:"2026-08-03",time:"8:00am"},
-{name:"National Youth Art Awards Exhibition",date:"2026-08-04",time:"5:30pm"},
-{name:"12OED – Mountain Bike 1 (Tue-Thu)",date:"2026-08-11",time:""},
-{name:"12OED – Mountain Bike 2 (Thu-Fri)",date:"2026-08-13",time:""},
-{name:"12OED – Mountain Biking Redwoods Forest (Tue-Fri)",date:"2026-08-11",time:""},
-{name:"Yr13 IB Visual Art examination",date:"2026-08-13",time:"8:45am"},
-{name:"12 IB Whiriato Winter Trip",date:"2026-08-14",time:"8:00am"},
-{name:"Year 13 IB Visual Art exhibition",date:"2026-08-14",time:"3:30pm"},
-{name:"Level 3 English 91476 Seminar internal assessment (Tue-Thu)",date:"2026-08-18",time:""},
-{name:"Y10–13 Drama students – Macbeth",date:"2026-08-18",time:"8:30am"},
-{name:"11BUS – Market Day",date:"2026-08-19",time:"11:45am"},
-{name:"LITNUM window (Mon-Fri)",date:"2026-09-07",time:""},
-{name:"CAAs",date:"2026-09-08",time:""},
-{name:"Senior Exams – Y11–13 (Wed-Fri)",date:"2026-09-09",time:""},
-{name:"Senior Exams – Y11–13 (Mon-Fri)",date:"2026-09-14",time:""},
-{name:"EE Day 2",date:"2026-09-21",time:""},
-{name:"13OED Leadership Camp (Wed-Fri)",date:"2026-10-14",time:""},
-{name:"13BUS – Young Enterprise Scheme",date:"2026-10-17",time:"1:15pm"},
-{name:"09COM – Market Day 2",date:"2026-10-21",time:"11:30am"},
-{name:"Year 7 Assessment Day",date:"2026-11-11",time:""},
-{name:"Year 9 Assessment Day",date:"2026-11-13",time:""},
-{name:"Year 12 IB Pirongia Field Trip",date:"2026-11-18",time:"10:30am"},
-{name:"Yr9 RE Pilgrimage",date:"2026-11-19",time:"8:00am"},
+  // Languages / culture
+ // { name: "Te Reo week",        date: "2026-03-11" }, // Wed
+ // { name: "Pacific lang week",  date: "2026-03-17" }, // Tue
+//  { name: "Chinese lang week",     date: "2026-03-26" }, // Thu
 
-// ---------- St Peter's Sports Calendar ----------
-{name:"Cricket – 1st XI Boys Cricket Exchange v Whanganui Collegiate School",date:"2026-02-07",time:""},
-{name:"Rowing – Junior Regatta",date:"2026-02-14",time:""},
-{name:"Cricket – 1st XI, 2nd XI & Colts",date:"2026-02-15",time:"10:30am"},
-{name:"Cricket – 1st XI, 2nd XI & Colts",date:"2026-02-16",time:"8:30am"},
-{name:"Athletics Day",date:"2026-02-25",time:""},
-{name:"6am 440 Enduro MTB",date:"2026-03-01",time:"6:00am"},
-{name:"Athletics Zonal Championships / Zone Athletics",date:"2026-03-03",time:""},
-{name:"Rowing – NISS Regatta (Fri-Sun)",date:"2026-03-06",time:""},
-{name:"Winter Sports Muster",date:"2026-03-09",time:"1:00pm"},
-{name:"Rowing – Whakamaru Camp (Fri-Sun)",date:"2026-03-13",time:""},
-{name:"Rural Schools Swimming",date:"2026-03-13",time:""},
-{name:"Waikato BOP Secondary Schools Triathlon",date:"2026-03-17",time:""},
-{name:"Athletics Waikato Bay of Plenty Secondary / WBOPSS Athletics",date:"2026-03-18",time:""},
-{name:"Cambridge Interschool Swimming",date:"2026-03-19",time:""},
-{name:"Swimming Sports",date:"2026-03-20",time:""},
-{name:"Rowing – Maadi Regatta / Summer Tournament Week (Sat-Sun)",date:"2026-03-21",time:""},
-{name:"Rowing – Maadi Regatta / Summer Tournament Week (Mon-Fri)",date:"2026-03-23",time:""},
-{name:"WFPSA Swimming",date:"2026-03-27",time:""},
-{name:"NISS Athletics",date:"2026-03-28",time:""},
-{name:"Athletics and Academic Pathway Tour (Thu-Sun)",date:"2026-04-02",time:""},
-{name:"Athletics and Academic Pathway Tour (Mon-Fri)",date:"2026-04-06",time:""},
-{name:"Athletics and Academic Pathway Tour (Mon-Fri)",date:"2026-04-13",time:""},
-{name:"MTB NISS Te Miro",date:"2026-04-11",time:""},
-{name:"Y7 and Y8 – St Kentigern Boys' Exchange",date:"2026-04-29",time:""},
-{name:"Y7 and Y8 – St Kentigern Girls' Exchange",date:"2026-04-30",time:""},
-{name:"MTB Camp (Fri-Sat)",date:"2026-05-01",time:""},
-{name:"Y7 and Y8 – Dilworth Exchange",date:"2026-05-20",time:""},
-{name:"Cross Country",date:"2026-05-21",time:""},
-{name:"St Paul's Exchange & CNI Game",date:"2026-05-28",time:""},
-{name:"Diocesan School for Girls Winter Sports Exchange",date:"2026-06-05",time:"6:00am"},
-{name:"WBOPSS Cross Country",date:"2026-06-10",time:""},
-{name:"Y7 and Y8 – Hereworth School",date:"2026-06-11",time:""},
-{name:"NZSS Cross Country",date:"2026-06-13",time:""},
-{name:"Battle of Waipa – Host",date:"2026-06-17",time:""},
-{name:"13OED Outdoor Rock Climbing / Sports Photos",date:"2026-06-18",time:""},
-{name:"Battle of Waipa – Host (Back Up Day)",date:"2026-06-19",time:""},
-{name:"U15 Rugby Exchange – Aussie",date:"2026-06-22",time:"12:30pm"},
-{name:"2026 Premier Netball Tour (Sat-Sun)",date:"2026-06-27",time:""},
-{name:"2026 Premier Netball Tour / Quad Netball Tournament (Mon-Wed)",date:"2026-06-29",time:""},
-{name:"NZSS Lacrosse – Girls (Sat-Sun)",date:"2026-07-04",time:""},
-{name:"NISS Road Cycling Champs (Sat-Sun)",date:"2026-07-04",time:""},
-{name:"NZSS Lacrosse – Girls (Mon-Tue)",date:"2026-07-06",time:""},
-{name:"NISS Track Champs",date:"2026-07-07",time:""},
-{name:"2026 Quad Netball Festival – Premier (Sun-Mon)",date:"2026-07-19",time:""},
-{name:"Y7 and Y8 – Southwell Sports Exchange",date:"2026-07-29",time:""},
-{name:"Mt Maunganui Exchange / New Plymouth Exchange",date:"2026-08-11",time:""},
-{name:"Y7 and Y8 – Cambridge Middle School Exchange",date:"2026-08-12",time:""},
-{name:"Winter Tournament Week (Mon-Fri)",date:"2026-08-31",time:""},
-{name:"AIMS Games (Mon-Fri)",date:"2026-09-07",time:""},
-{name:"Track Cycling Camp (Sat-Sun)",date:"2026-09-19",time:""},
-{name:"NZSS Road Cycling (Sat-Sun)",date:"2026-09-26",time:""},
-{name:"NZSS Road Cycling",date:"2026-09-28",time:""},
-{name:"NZSS MTB Nationals (Sat-Sun)",date:"2026-10-03",time:""},
-{name:"NZSS Track Cycling Champs (Sun-Tue)",date:"2026-10-04",time:""},
-{name:"Sports Awards",date:"2026-10-19",time:""},
-{name:"Sydney Rowing Tour (Sun-Fri)",date:"2026-11-29",time:""},
+  // Non-uniform / pastoral
+ // { name: "Non-uniform day",    date: "2026-02-05" }, // Thu
+ // { name: "Non-uniform day",    date: "2026-03-20" }, // Fri
 
-// ---------- Reporting Calendar Deadlines (Missing) ----------
-{ name: "Insight reports due", date: "2026-02-24", time: "2:00pm" },
-{ name: "At least one assessment result entered in KAMAR", date: "2026-03-02", time: "" },
-{ name: "Remind teachers about PTCs and book unavailability", date: "2026-03-16", time: "" },
-{ name: "All unavailability approved by HOF and communicated", date: "2026-03-19", time: "" },
-{ name: "Insight reports due", date: "2026-03-24", time: "2:00pm" },
-{ name: "Parent teacher conferences (online)", date: "2026-03-31", time: "" },
-{ name: "Parent teacher conferences (online)", date: "2026-04-01", time: "" },
-{ name: "Mid-year report comment banks due to HOFs", date: "2026-04-27", time: "" },
-{ name: "Insight reports due", date: "2026-05-12", time: "2:00pm" },
-{ name: "Insight reports due", date: "2026-08-11", time: "2:00pm" },
-{ name: "Parent teacher conferences (online)", date: "2026-08-19", time: "" },
-{ name: "Parent teacher conferences (online)", date: "2026-08-20", time: "" },
-{ name: "End-of-year comment banks due to HOFs", date: "2026-09-14", time: "" },
-{ name: "Insight reports due", date: "2026-09-22", time: "2:00pm" },
-{ name: "ALL NCEA results in KAMAR", date: "2026-11-09", time: "" },
-{ name: "Insight reports due", date: "2026-11-10", time: "2:00pm" },
-{ name: "Year 7 homeroom reports to buddies for checking", date: "2026-11-12", time: "" },
-{ name: "Year 7 homeroom reports complete", date: "2026-11-13", time: "" },
-{ name: "All Year 11 data entry complete", date: "2026-11-16", time: "" },
-{ name: "Year 7–10 subject reports to buddies for checking", date: "2026-11-24", time: "" },
-{ name: "Year 7–10 subject reports complete", date: "2026-11-26", time: "" }
+  // Exchanges - evenly distributed
+ // { name: "Dio exchange",       date: "2026-03-04" }, // Wed
+ // { name: "St Paul's exch",     date: "2026-03-06" }, // Fri 
+ // { name: "Kings exch",         date: "2026-02-13" }, // Fri
+//  { name: "Epsom exch",         date: "2026-03-18" }, // Wed
+ // { name: "Grammar exch",       date: "2026-02-10" }, // Tue
 
-
-
+  // Major co-curricular
+ // { name: "Summer tourn week",  date: "2026-03-24" }  // Tue
 ];
-
 
 /* Custom events loaded from CSV (skip=false) */
 let events=[];
@@ -870,7 +607,7 @@ function isSkipped(date, subjectName = '') {
   const yearMatch = base.match(/^(\d{1,2})/);
   const subjYear = yearMatch ? parseInt(yearMatch[1]) : null;
 
-  // A date is skipped only if there is a skip event that applies to this subject’s year
+  // A date is skipped only if there is a skip event that applies to this subject's year
   return allEvents().some(ev => {
     if (!ev.include || !ev.skip || !sameDate(date, ev.date)) return false;
     // If event has a specific year, it only applies to that year
@@ -977,7 +714,7 @@ function countUnaffectedForBase(base, termStart){
       for(let p=0;p<6;p++){
         const s=gridSub[p][rot-1];
         if(baseSubject(s)===base){
-          const isFriP1=(d===4 && p===0); // Friday (0=Sun...4=Thu? careful) — we used d loop 0..4 mapping Mon..Fri -> dayOfWeek? We'll keep PD rule below via weekday check instead.
+          const isFriP1=(d===4 && p===0); // Friday (0=Sun...4=Thu? careful) - we used d loop 0..4 mapping Mon..Fri -> dayOfWeek? We'll keep PD rule below via weekday check instead.
           const evHits=eventsAffecting(date,p);
           const dow=strip(date).getDay(); // 1..5 Mon..Fri
           if(dow===5 && p===0) continue;        // PD Friday P1 is not a teachable contact
@@ -1050,9 +787,9 @@ function renderPages() {
 const cover = document.createElement('div');
 cover.className = 'page';
 cover.innerHTML = `
-  <div class="cover">
+  <div class="cover stp-cover">
 <h1 id="coverTeacherCode" style="text-transform:uppercase;"></h1>
-    <h2>St Peter’s Planner 2026</h2>
+    <h2>St Peter's Planner 2026</h2>
     <p style="font-size:40px;color:#444;margin-top:8px;">${termListText}</p>
     <img src="Crest.png" alt="Crest">
   </div>`;
@@ -1067,7 +804,7 @@ out.appendChild(cover);
       <div>
         <img src="Timetable.png" alt="Timetable"
           style="width:204mm;max-width:95%;height:auto;margin-top:10mm;">
-        <div style="margin-top:4mm;">${plainTimetableTable()}</div>
+        <div style="margin-top:16mm;">${plainTimetableTable()}</div>
       </div>
     </div>`;
   out.appendChild(timg);
@@ -1172,7 +909,7 @@ function generateSummaryTable() {
       for (let w = 0; w < T.weeks; w++) {
         for (let day = 0; day < 5; day++) {
           const current = addDays(start, w * 7 + day);
-          const dow = strip(current).getDay(); // 1–5 Mon–Fri
+          const dow = strip(current).getDay(); // 1-5 Mon-Fri
           const fullDay = allEvents().some(ev => ev.include && ev.skip && sameDate(current, ev.date));
           if (fullDay) continue;
           const rot = computeRotationDay(current, start, T.startDay);
@@ -1204,7 +941,7 @@ function generateSummaryTable() {
       yearPossible += total;
       yearHours += hours;
 
-      // ✅ Always show all terms regardless of inclusion
+      // Always show all terms regardless of inclusion
       html += `<td>${unaffected}/${total} <span style="color:#555;">(${hours.toFixed(0)}Hr)</span></td>`;
     }
 
@@ -1221,7 +958,7 @@ let termLine = termConfig.map(T => {
   const start = new Date(T.start);
   const end = addDays(start, T.weeks * 7 - 1);
   const fmt = d => d.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' });
-  return `Term ${T.term}: ${fmt(start)} – ${fmt(end)}`;
+  return `Term ${T.term}: ${fmt(start)} - ${fmt(end)}`;
 }).join(' _____ ');
 
 html += `<div style="
@@ -1235,11 +972,8 @@ html += `<div style="
 
 
  // ===== EVENTS & HOLIDAYS SECTION (3-column flowing list) =====
-html += '<h3 style="margin-top:20px;">Leave Weekends, Holidays and Parent Teacher Confrences</h3>';
-const all = allEvents()
-  .filter(ev => ev.include && ev.summary !== false)
-  .sort((a, b) => new Date(a.date) - new Date(b.date));
-
+html += '<h3 style="margin-top:20px;">Key Dates & Events</h3>';
+const all = allEvents().filter(ev => ev.include).sort((a, b) => new Date(a.date) - new Date(b.date));
 
 termConfig.forEach(T => {
   const start = new Date(T.start);
@@ -1274,11 +1008,7 @@ termConfig.forEach(T => {
 
       const yearText = ev.year ? `Y${ev.year}` : '';
 
-      let extra = [yearText, periodsText].filter(x => x && x.trim()).join(' ');
-let suffix = extra ? ' — ' + extra : '';
-
-html += `<li>${dateStr} — ${ev.name || 'Holiday'}${suffix}</li>`;
-
+      html += `<li>${dateStr} - ${ev.name || 'Holiday'} - ${yearText} ${periodsText}</li>`;
     });
 
     html += '</ul>';
@@ -1289,7 +1019,7 @@ html += `<li>${dateStr} — ${ev.name || 'Holiday'}${suffix}</li>`;
   return html;
 }
 
-// ===== deadlines → classes due on a given date (unique, sorted)
+// ===== deadlines -> classes due on a given date (unique, sorted)
 function deadlineClassesOnDate(date){
   const d = strip(date).getTime();
   const classes = new Set();
@@ -1322,13 +1052,13 @@ function buildPage(monday, termStart, startDay, termNumber, weekNumber, isFirst)
       const skipped = isSkipped(date);
       const dstr = date.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' });
       if (skipped) {
-        th.textContent = `${label} – ${dstr}`;
+        th.textContent = `${label} - ${dstr}`;
         th.style.background = '#e5e7eb';
         th.style.color = '#777';
         th.style.fontStyle = 'italic';
       } else {
         const dayNum = computeRotationDay(date, termStart, startDay);
-        th.textContent = `${label} – ${dstr} – Day ${dayNum}`;
+        th.textContent = `${label} - ${dstr} - Day ${dayNum}`;
       }
     } else {
       th.textContent = label;
@@ -1368,7 +1098,7 @@ function buildPage(monday, termStart, startDay, termNumber, weekNumber, isFirst)
 
 Object.keys(classdeadlines).forEach(cls => {
 
-  // Extract subjects listed in the Class: field → ["PHY","BIO","CHE"]
+  // Extract subjects listed in the Class: field -> ["PHY","BIO","CHE"]
   const csvSubjects = cls
     .replace(/Class:/i, "")
     .replace(/[.\s]+/g, " ")
@@ -1384,18 +1114,18 @@ Object.keys(classdeadlines).forEach(cls => {
     teacherSubjects.some(t => t.includes(sub))
   );
 
-  if (!allowed) return;  // 🚫 do not show meeting
+  if (!allowed) return;  // do not show meeting
 
   classdeadlines[cls].forEach(d => {
     if (!sameDate(date, d.date)) return;
 
-    // ✅ Meetings always go to bottom NOTES cell, no prefix, no "Due:"
+    // Meetings always go to bottom NOTES cell, no prefix, no "Due:"
     if (/meeting/i.test(d.Deadline)) {
       cellText.push(d.Deadline.trim());
       return;
     }
 
-    // ✅ Non-meeting deadlines behave normally (show class prefix)
+    // Non-meeting deadlines behave normally (show class prefix)
     const base = baseSubject(cls);
     cellText.push(`${base}: ${d.Deadline.trim()}`);
   });
@@ -1415,12 +1145,12 @@ if (cellText.length) {
   td.style.fontStyle = 'normal';
   td.style.color = '#000';
 
-  // ✅ Only global (no-class) = simple display
+  // Only global (no-class) = simple display
   if (globalItems.length && !classItems.length) {
     td.textContent = globalItems.join(', ');
   }
 
-  // ✅ Class deadlines or mixed = "Due:" format
+  // Class deadlines or mixed = "Due:" format
   else {
     td.textContent = 'Due: ' + cleaned.join(', ');
   }
@@ -1447,81 +1177,44 @@ function rowCells(cols, periodIndex, termStart, startDay) {
     div.className = 'slot';
     div.style.position = 'relative';
 
-// ===== WEEKEND CHECKLIST — FLOWING INTO MULTIPLE CELLS =====
-if (!date) {
-
+// ===== WEEKEND P1 CHECKLIST - HARD-CODED DEADLINES (full week range) =====
+if (!date && periodIndex === 0) {
   // Find the Monday on this planner page
   let monday = null;
   for (let i = 0; i < cols.length; i++) {
     const d = cols[i][1];
-    if (d && strip(d).getDay() === 1) {
+    if (d && strip(d).getDay() === 1) { // Monday
       monday = strip(d);
       break;
     }
   }
+
+  // Safety fallback
   if (!monday) monday = strip(cols[0][1]);
 
+  // Define full-week range: previous Saturday -> upcoming Friday
   const startRange = strip(addDays(monday, -2)); // Saturday before
-  const endRange   = strip(addDays(monday, 4));  // Friday
+  const endRange = strip(addDays(monday, 4));    // Friday
 
   const checklist = [];
 
-  function dayName(d) {
-    return d.toLocaleDateString('en-NZ', { weekday: 'short' });
+  function dayCode(d) {
+    return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][strip(d).getDay()];
   }
 
-  // --- School events
-  allEvents().forEach(ev => {
-    if (!ev.include) return;
-
-    const d = strip(new Date(ev.date));
-    if (d < startRange || d > endRange) return;
-
-    checklist.push({
-      date: d,
-      text: `□ ${dayName(d)} — ${ev.name || 'School Event'}`
-    });
-  });
-
-  // --- Deadlines
+  // Include any fixed deadline within Sat-Fri range
   FIXED_DEADLINES.forEach(fd => {
-    const d = strip(new Date(fd.date));
-    if (d < startRange || d > endRange) return;
-
-    const timeText = fd.time ? ` (${fd.time})` : '';
-    checklist.push({
-      date: d,
-      text: `□ ${dayName(d)} — ${fd.name}${timeText}`
-    });
+    const d = strip(new Date(fd.date + "T00:00:00"));
+    if (d.getTime() >= startRange.getTime() && d.getTime() <= endRange.getTime()) {
+      checklist.push(`[] ${fd.name} (${dayCode(d)})`);
+    }
   });
 
-  // Sort Mon → Fri
-  checklist.sort((a, b) => a.date.getDay() - b.date.getDay());
-
-  // Split checklist into chunks (approx 8 lines per cell)
-  const CHUNK_SIZE = 4;
-  const chunks = [];
-  for (let i = 0; i < checklist.length; i += CHUNK_SIZE) {
-    chunks.push(checklist.slice(i, i + CHUNK_SIZE));
-  }
-
-  // Render only the chunk for this period row
-  const chunk = chunks[periodIndex] || [];
-
-  if (chunk.length) {
+  if (checklist.length) {
     div.style.padding = "2mm";
     div.style.fontSize = "11px";
     div.style.color = "#000";
-
-    // Title only on first cell
-    const title = periodIndex === 0 ? `<b>Whats on this week</b><br>` : '';
-
-    div.innerHTML =
-  title +
-  chunk.map(x => `
-    <div class="checkline">${x.text}</div>
-  `).join("");
-
+    div.innerHTML = `<b>Weekly Deadlines and Notices</b><br>` + checklist.join("<br>");
   }
 
   td.appendChild(div);
@@ -1697,14 +1390,14 @@ function savePlannerPrettyCSV(){
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a'); a.href=url; a.download='planner_pretty.csv';
   document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-  alert('✅ Planner saved.');
+  alert('Planner saved.');
 }
 // ===== CSV LOAD (store only; don't render yet) =====
 let currentTimetableCSV = '';
 
 function loadPlannerPrettyCSV(text) {
   currentTimetableCSV = text; // store raw CSV for later filtering
-  alert("✅ Timetable CSV loaded and stored. Enter staff code and click Generate to build planner.");
+  alert("Timetable CSV loaded and stored. Enter staff code and click Generate to build planner.");
 }
 
 
@@ -1719,11 +1412,11 @@ function ddmmyyyyToISO(dmy) {
   return `${y}-${mo.padStart(2, '0')}-${d.padStart(2, '0')}`;
 }
 /* ============================================================
-   📘 Deadline PAGES GENERATOR (INSERTED BETWEEN PLANNER & EXTRA)
+   Deadline PAGES GENERATOR (INSERTED BETWEEN PLANNER & EXTRA)
    ============================================================ */
 
 /* ============================================================
-   🎯 DeadlineS FILE HANDLER
+   DeadlineS FILE HANDLER
    ============================================================ */
 async function setupDeadlineFileHandlers() {
   const loadDeadlinesBtn = document.getElementById('loadDeadlinesBtn');
@@ -1830,7 +1523,7 @@ if (termMatch) {
 storedDeadlinePages.forEach(pg => out.appendChild(pg));  // Append now
 
 
-  alert(`✅ ${DeadlinePages.length} Deadline page(s) added — simplified for period-based tests.`);
+  alert(`${DeadlinePages.length} Deadline page(s) added - simplified for period-based tests.`);
 }
 
 
@@ -1895,7 +1588,7 @@ function buildDeadlinePage(className, DeadlineName, Deadlines, dates, students) 
 
 
 function init() {
-  // ✅ Safely skip if printControls container missing
+  // Safely skip if printControls container missing
   const printControlsHost = document.getElementById('printControls');
   if (printControlsHost) renderPrintControls();
 
@@ -1906,7 +1599,7 @@ function init() {
 ['term1','term2','term3','term4'].forEach((id,i)=>{
   const el = document.getElementById(id);
   if(el){
-    el.checked = termInclude[i];      // ✅ use your default array values
+    el.checked = termInclude[i];      // use your default array values
     el.addEventListener('change',()=>{
       termInclude[i] = el.checked;
       renderPages();
@@ -1935,6 +1628,104 @@ if (printBtn) {
 }
 
 
+/* ============================================================
+   BATCH PDF GENERATION
+   Loops through comma-separated codes, builds each planner,
+   and downloads a PDF per teacher via html2pdf.js
+   ============================================================ */
+async function batchGeneratePDFs() {
+  const raw = document.getElementById('batchCodes').value.trim();
+  const statusEl = document.getElementById('batchStatus');
+
+  if (!currentTimetableCSV) {
+    alert('Please load a timetable CSV first.');
+    return;
+  }
+  if (!raw) {
+    alert('Enter at least one staff code.');
+    return;
+  }
+
+  // De-duplicate, uppercase, strip blanks
+  const codes = [...new Set(
+    raw.split(',').map(c => c.trim().toUpperCase()).filter(Boolean)
+  )];
+
+  const batchBtn = document.getElementById('batchGenerateBtn');
+  batchBtn.disabled = true;
+  batchRunning = true;
+
+  const failed = [];
+  const { jsPDF } = window.jspdf;
+
+  for (let i = 0; i < codes.length; i++) {
+    const code = codes[i];
+    statusEl.textContent = `Generating ${i + 1} of ${codes.length}: ${code}...`;
+
+    // Confirm the code exists before building
+    const hit = Papa.parse(currentTimetableCSV.trim()).data
+      .some(r => r[0] && r[0].trim().toUpperCase() === code);
+    if (!hit) { failed.push(code); continue; }
+
+    // Build this teacher's planner grid
+    filterTimetableForTeacher(code);
+    rebuildSubjectsFromGrid();
+    renderPages();
+
+    const coverName = document.getElementById('coverTeacherCode');
+    if (coverName) coverName.textContent = selectedTeacherName || code;
+
+    // Let the DOM paint before capturing
+    await new Promise(r => setTimeout(r, 300));
+
+    // A4 portrait in mm
+    const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+    const pageW = 210, pageH = 297;
+
+    // Capture each .page element individually and add it as its own PDF page.
+    const pageEls = Array.from(document.querySelectorAll('#pages .page'));
+    for (let j = 0; j < pageEls.length; j++) {
+      const el = pageEls[j];
+
+      // Neutralise the on-screen transform/height just for capture
+      const prevTransform = el.style.transform;
+      const prevHeight = el.style.height;
+      const prevPadding = el.style.padding;
+      el.style.transform = 'none';
+      el.style.height = '297mm';
+      el.style.padding = '0';
+
+      const canvas = await html2canvas(el, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff'
+      });
+
+      // Restore
+      el.style.transform = prevTransform;
+      el.style.height = prevHeight;
+      el.style.padding = prevPadding;
+
+      const img = canvas.toDataURL('image/jpeg', 0.95);
+      if (j > 0) pdf.addPage();
+      pdf.addImage(img, 'JPEG', 0, 0, pageW, pageH);
+    }
+
+    pdf.save(buildPlannerFilename());
+
+    // Small gap so the browser processes each download
+    await new Promise(r => setTimeout(r, 600));
+  }
+
+  statusEl.textContent = failed.length
+    ? `Done - ${codes.length - failed.length} generated. Not found: ${failed.join(', ')}`
+    : `Done - ${codes.length} PDF(s) generated.`;
+  batchRunning = false;
+  document.body.classList.remove('batch-export');
+  batchBtn.disabled = false;
+}
+
+
 window.onload = function () {
   init();
 
@@ -1943,8 +1734,7 @@ window.onload = function () {
   const generateBtn = document.getElementById('generatePlannerBtn');
   const deadlinesFile = document.getElementById('loadDeadlinesFile');
   const teacherInput = document.getElementById('teacherCode');
-  const emailBtn = document.getElementById('emailBtn');
-  
+
   let timetableLoaded = false;
   let deadlinesLoaded = false;
   let teacherCode = '';
@@ -1964,6 +1754,7 @@ window.onload = function () {
   currentTimetableCSV = ev.target.result;
   timetableLoaded = true;
   populateTeacherDropdown(currentTimetableCSV);
+  alert('Timetable CSV loaded. Select staff code from the dropdown.');
 };
 
       reader.readAsText(file);
@@ -1993,90 +1784,20 @@ if (teacherInput) {
   if (generateBtn) {
     generateBtn.addEventListener('click', () => {
       if (!timetableLoaded) {
-        alert('⚠️ Please load a timetable CSV first.');
+        alert('Please load a timetable CSV first.');
         return;
       }
 teacherCode = teacherInput.value.trim().toUpperCase();
 if (!teacherCode) {
   return;
 }
-if (emailBtn) {
-  emailBtn.onclick = () => {
-    const filename = buildPlannerFilename();
-    document.title = filename.replace('.pdf', '');
-
-    // Extract first name from formatted name: "Mr A Ryan" → Andrew
-    let firstName = "there";
-
-    if (selectedTeacherName) {
-      // We stored formatted name like "Mr A Ryan" but we still have raw CSV name earlier
-      // So pull it again from the CSV row
-      const table = Papa.parse(currentTimetableCSV.trim()).data;
-      const row = table.find(r => r[0] && r[0].trim().toUpperCase() === teacherCode);
-      if (row && row[1]) {
-        const rawName = row[1].trim(); // "Ryan, Mr Andrew"
-        const parts = rawName.split(',');
-        if (parts.length === 2) {
-          const right = parts[1].trim(); // "Mr Andrew"
-          const nameParts = right.split(/\s+/);
-          if (nameParts.length >= 2) {
-            firstName = nameParts[1];
-          }
-        }
-      }
-    }
-
-    // Build term list text
-    const includedTerms = termConfig
-      .map((t, i) => termInclude[i] ? t.term : null)
-      .filter(Boolean);
-
-    let termText = '';
-    if (includedTerms.length === 4) {
-      termText = 'Terms 1, 2, 3 and 4';
-    } else if (includedTerms.length === 1) {
-      termText = `Term ${includedTerms[0]}`;
-    } else if (includedTerms.length > 1) {
-      termText = 'Terms ' + includedTerms.slice(0, -1).join(', ') + ' and ' + includedTerms.slice(-1);
-    } else {
-      termText = 'no terms';
-    }
 
 
-    // Trigger PDF save
-    window.print();
 
-const subject = encodeURIComponent(`2026 Teacher Planner — ${termText}`);
-const body = encodeURIComponent(
-  `Hi ${firstName},\n\n` +
-  `Please find attached your 2026 Teacher Planner covering ${termText}.\n\n` +
-
-  `If you would like to attach your class rolls or class photos (downloaded from KAMAR) into your planner PDF, ` +
-  `you can use Adobe's online PDF combiner here:\n` +
-  `Adobe PDF Combiner: https://www.adobe.com/acrobat/online/merge-pdf.html\n\n` +
-
-  `Once combined, you can print or bind as a booklet.\n\n` +
-  
-  `Note that there is a small chance that some events in the "Whats on this week" may change.\n` +
-`Please keep an eye on the official Whats On documents which can be found here: \n` +
-`https://intranet.stpeters.school.nz/Publications/ThisWeekNextWeek.aspx?TabSeq=0.\n\n` +
-
-  `If you need any assistance with your planner, come and find me in the Science Block in L2 any lunchtime from 1:00.\n\n` +
-
-  `Regards`
-);
-
-
-window.location.href = `mailto:?subject=${subject}&body=${body}`;
-
-  };
-}
-
-
-      // ✅ Build timetable grid
+      // Build timetable grid
       filterTimetableForTeacher(teacherCode);
 
-      // ✅ Rebuild colors & render planner
+      // Rebuild colors & render planner
       rebuildSubjectsFromGrid();
       renderPages();
       
@@ -2085,6 +1806,12 @@ if (coverName) {
   coverName.textContent = selectedTeacherName || teacherCode;
 }
     });
+  }
+
+  // === BATCH GENERATE BUTTON ===
+  const batchBtn = document.getElementById('batchGenerateBtn');
+  if (batchBtn) {
+    batchBtn.addEventListener('click', batchGeneratePDFs);
   }
 
   // === INITIAL BLANK RENDER ===
@@ -2136,6 +1863,7 @@ function buildPlannerFilename() {
   return `${name}_${termPart}_Planner_2026.pdf`;
 }
 
+let batchRunning = false;
 function filterTimetableForTeacher(code) {
   const table = Papa.parse(currentTimetableCSV.trim()).data;
   const headers = table[0];
@@ -2144,11 +1872,11 @@ function filterTimetableForTeacher(code) {
   const row = table.find(r => r[0] && r[0].trim().toUpperCase() === code);
 
   if (!row) {
-    alert(`❌ Could not find a timetable for code ${code}.`);
+    if (!batchRunning) alert(`Could not find a timetable for code ${code}.`);
     return;
   }
 
-  // Column B = Teacher Name → format to "Mr A Ryan"
+  // Column B = Teacher Name -> format to "Mr A Ryan"
   const rawName = row[1]?.trim() || code;
   selectedTeacherName = formatTeacherName(rawName);
 
